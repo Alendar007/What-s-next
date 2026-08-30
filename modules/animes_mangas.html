@@ -704,6 +704,23 @@
     `;
     return card;
   }
+    // Écouter le signal de changement de thème provenant de la page parente (index.html)
+  window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'set-theme') {
+      const theme = event.data.theme;
+      // Applique le thème dynamiquement sur le document du module
+      document.documentElement.setAttribute('data-theme', theme);
+      
+      // Si tu gères des couleurs en dur ou des variables, tu peux aussi ajuster ici si besoin
+      if (theme === 'light') {
+        document.body.style.background = '#f8fafc';
+        document.body.style.color = '#0f172a';
+      } else {
+        document.body.style.background = '#0f172a';
+        document.body.style.color = '#f8fafc';
+      }
+    }
+  });
 </script>
 
 </body>
