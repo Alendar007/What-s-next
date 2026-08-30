@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>What's next ?</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <!-- Favicon chat en SVG pur 100% transparent et net -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%236366f1' d='M2 3h2v2H2V3zm10 0h2v2h-2V3zM1 5h2v2H1V5zm12 0h2v2h-2V5zM3 7h10v2H3V7zm1 2h8v2H4V9zm2 2h4v2H6v-2z'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #6366f1;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+    html, body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* En-tête avec le nom du site centré */
+    .top-header {
+      height: 45px;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: sticky;
+      top: 0;
+      z-index: 1001;
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+    .top-header h1 {
+      color: #fff;
+      font-size: 16px;
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* Layout principal */
+    .app-layout {
+      display: flex;
+      min-height: calc(100vh - 45px);
+    }
+
+    /* Sidebar ultra-fine par défaut, s'élargit au survol */
+    .sidebar {
+      width: 48px;
+      background: var(--card-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding-top: 10px;
+      gap: 8px;
+      flex-shrink: 0;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sidebar:hover {
+      width: 170px;
+    }
+
+    /* Élément du menu */
+    .sidebar-item {
+      position: relative;
+      width: 100%;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 0 8px 8px 0;
+      transition: background 0.2s, color 0.2s;
+      overflow: hidden;
+    }
+    .sidebar-item:hover, .sidebar-item.active {
+      color: #fff;
+      background: rgba(99, 102, 241, 0.2);
+    }
+
+    /* Icône fixe */
+    .sidebar-icon {
+      min-width: 48px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    /* Texte du module : apparaît au survol de la barre */
+    .sidebar-text {
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s ease 0.05s;
+    }
+    .sidebar:hover .sidebar-text {
+      opacity: 1;
+    }
+
+    /* Zone de contenu principale */
+    .main-content {
+      flex: 1;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+
+    /* Vues / Modules */
+    .view {
+      display: none;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .view.active {
+      display: block;
+    }
+
+    /* Page d'accueil épurée sans encart, gros titre */
+    .welcome-container {
+      text-align: center;
+      margin-top: 60px;
+      padding: 0 20px;
+    }
+    .welcome-container h2 {
+      color: #fff;
+      font-size: 32px;
+      font-weight: 800;
+      margin: 0 0 12px 0;
+      letter-spacing: -0.5px;
+    }
+    .welcome-container p {
+      color: var(--muted);
+      font-size: 16px;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-header">
+    <h1>What's next ?</h1>
+  </header>
+
+  <div class="app-layout">
+    <nav class="sidebar">
+      <div class="sidebar-item active" id="btn-home" onclick="switchView('home', this)">
+        <div class="sidebar-icon">🐈‍⬛</div>
+        <span class="sidebar-text">Accueil</span>
+      </div>
+
+      <div class="sidebar-item" id="btn-anime" onclick="switchView('anime', this)">
+        <div class="sidebar-icon">🤖</div>
+        <span class="sidebar-text">Animes & Mangas</span>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div id="home" class="view">
+        <div class="welcome-container">
+          <h2>Tableau de bord</h2>
+          <p>Survole la barre à gauche pour lancer le module.</p>
+        </div>
+      </div>
+
+      <div id="anime" class="view">
+        <iframe src="modules/animes_mangas.html" style="width: 100%; height: 85vh; border: none; background: transparent;"></iframe>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function switchView(viewId, element, save = true) {
+      document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+      element.classList.add('active');
+
+      document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+
+      if (save) {
+        localStorage.setItem('activeView', viewId);
+      }
+    }
+
+    // Restaure le module actif au rechargement
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedView = localStorage.getItem('activeView');
+      if (savedView && document.getElementById(savedView)) {
+        const targetBtn = document.getElementById('btn-' + savedView);
+        if (targetBtn) {
+          switchView(savedView, targetBtn, false);
+        }
+      } else {
+        switchView('home', document.getElementById('btn-home'), false);
+      }
+    });
+  </script>
+
+</body>
+</html>
