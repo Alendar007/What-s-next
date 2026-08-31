@@ -1,7 +1,7 @@
 {
   "name": "What's next ?",
   "short_name": "What's next",
-  "start_url": "What-s-next",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
