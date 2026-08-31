@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>What's next ?</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    :root[data-theme="dark"] {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #6366f1;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+    :root[data-theme="light"] {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --accent: #4f46e5;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* Sidebar de navigation */
+    .sidebar {
+      width: 70px;
+      background: var(--card-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .nav-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      overflow: hidden;
+    }
+
+    .nav-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .nav-icon:hover, .nav-icon.active {
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+
+    /* Zone principale d'affichage du module */
+    .main-content {
+      flex: 1;
+      height: 100%;
+      border: none;
+      background: var(--bg);
+    }
+
+    /* Bouton de thème */
+    .theme-toggle {
+      margin-top: auto;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      color: var(--text);
+      padding: 10px;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    .theme-toggle:hover {
+      background: var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <!-- Lien vers les Séries avec la nouvelle icône pixel art -->
+    <a href="modules/series.html" class="nav-icon active" target="contentFrame" title="Séries TV" onclick="setActive(this)">
+      <img src="assets/series_pixel.jpg" alt="Séries">
+    </a>
+
+    <!-- Lien vers les Animés & Mangas -->
+    <a href="modules/animes_mangas.html" class="nav-icon" target="contentFrame" title="Animés & Mangas" onclick="setActive(this)">
+      <img src="assets/anime_pixel.jpg" alt="Animés">
+    </a>
+
+    <!-- Bouton bascule de thème -->
+    <button class="theme-toggle" id="themeToggle" title="Changer de thème">🌙</button>
+  </div>
+
+  <iframe name="contentFrame" src="modules/series.html" class="main-content"></iframe>
+
+  <script>
+    const iframe = document.querySelector('contentFrame');
+    const themeToggle = document.getElementById('themeToggle');
+    const htmlElement = document.documentElement;
+
+    // Gestion du thème sombre / clair
+    function setTheme(theme) {
+      htmlElement.setAttribute('data-theme', theme);
+      themeToggle.innerText = theme === 'dark' ? '🌙' : '☀️';
+      localStorage.setItem('theme', theme);
+      
+      // Transmet le thème au module actif dans l'iframe
+      const frameWindow = document.querySelector('iframe').contentWindow;
+      if (frameWindow) {
+        frameWindow.postMessage({ type: 'set-theme', theme: theme }, '*');
+      }
+    }
+
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    setTheme(savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+      const current = htmlElement.getAttribute('data-theme');
+      setTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
+    // Gestion de la classe active sur la sidebar
+    function setActive(element) {
+      document.querySelectorAll('.nav-icon').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+    }
+  </script>
+</body>
+</html>q
