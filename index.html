@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+s<!DOCTYPE html>
 <html lang="fr" data-theme="dark">
 <head>
   <meta charset="UTF-8">
@@ -319,6 +319,11 @@
         switchView('home', document.getElementById('btn-home'), false);
       }
     });
+      if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log("Service Worker enregistré avec succès !"))
+      .catch((err) => console.log("Erreur Service Worker:", err));
+      }
   </script>
 
 </body>
