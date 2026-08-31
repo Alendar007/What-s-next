@@ -3,8 +3,14 @@
   "short_name": "What's next",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
   "icons": [
     {
       "src": "assets/favicon.png",
