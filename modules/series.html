@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>Séries TV - What's next ?</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root[data-theme="dark"] {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #6366f1;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+    :root[data-theme="light"] {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --accent: #4f46e5;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    /* Barre de défilement ultra-fine et transparente */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; transition: background 0.2s; }
+    body:hover::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 30px 40px 60px 40px;
+      box-sizing: border-box;
+      width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .module-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+
+    h1, .page-title {
+      font-size: 2.6rem !important;
+      font-weight: 800;
+      text-align: center;
+      margin: 0 0 10px 0;
+      letter-spacing: -1px;
+    }
+
+    p.subtitle, .page-subtitle {
+      font-size: 1.15rem;
+      color: var(--muted);
+      text-align: center;
+      margin: 0 0 30px 0;
+    }
+
+    /* Zone de recherche, filtres, personnages et citations centrés et limités en largeur */
+    .search-filter-container, .character-container, .quote-container {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 30px;
+      text-align: center;
+      align-items: center;
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 1rem;
+      box-sizing: border-box;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .section-wrapper {
+      width: 100%;
+      margin-bottom: 30px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="module-container">
+    <h1>Séries TV</h1>
+    <p class="subtitle">Explore et filtre ta collection</p>
+
+    <div class="search-filter-container">
+      <input type="text" id="search-input" placeholder="Rechercher une série...">
+      <select id="sort-select">
+        <option value="rating">⭐ Meilleure note</option>
+        <option value="title">A - Z</option>
+      </select>
+    </div>
+
+    <div id="character-section" class="character-container"></div>
+    <div id="quote-section" class="quote-container"></div>
+
+    <div id="results-container" class="section-wrapper"></div>
+  </div>
+
+  <script>
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'set-theme') {
+        document.documentElement.setAttribute('data-theme', event.data.theme);
+      }
+    });
+  </script>
+</body>
+</html>
