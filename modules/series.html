@@ -407,7 +407,7 @@
   }
   initHero();
 
-  resetBtn.addEventListener('click', () => {
+    resetBtn.addEventListener('click', () => {
     searchInput.value = '';
     resultsContainer.innerHTML = '';
     loadMoreContainer.style.display = 'none';
@@ -415,7 +415,7 @@
     autocompleteList.style.display = 'none';
     status.innerText = '';
     status.className = 'status';
-    initHero();
+    initHero(); // Remet un héros aléatoire propre à ce module
   });
 
   function handleInput() {
