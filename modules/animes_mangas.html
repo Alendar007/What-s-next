@@ -495,14 +495,14 @@
   }
   initHero();
 
-  resetBtn.addEventListener('click', () => {
+    resetBtn.addEventListener('click', () => {
     searchInput.value = '';
     lastSearchedTitle = '';
     resultsContainer.innerHTML = '';
     loadMoreContainer.style.display = 'none';
     controlsBar.style.display = 'none';
     status.innerText = '';
-    initHero();
+    initHero(); // Remet un héros aléatoire propre au module animés
     resetBtn.style.display = 'none';
   });
 
