@@ -10,11 +10,9 @@ export default async function handler(req, res) {
       url = `https://www.giantbomb.com/api/search/?api_key=${GB_API_KEY}&format=json&query=${encodeURIComponent(search)}&resources=game&limit=6`;
     } else if (similar === 'true' && id) {
       const cleanId = id.toString().trim();
-      // Si l'ID est un GUID Giant Bomb valide (contient un tiret), on cible directement le jeu
       if (cleanId.includes('-')) {
         url = `https://www.giantbomb.com/api/game/${cleanId}/?api_key=${GB_API_KEY}&format=json`;
       } else {
-        // Sinon, on fait une recherche pour récupérer le bon GUID
         url = `https://www.giantbomb.com/api/search/?api_key=${GB_API_KEY}&format=json&query=${encodeURIComponent(cleanId)}&resources=game&limit=1`;
       }
     } else {
@@ -28,16 +26,15 @@ export default async function handler(req, res) {
     try {
       data = JSON.parse(textData);
     } catch (e) {
-      return res.status(500).json({ error: "Réponse invalide de l'API Giant Bomb" });
+      return res.status(500).json({ error: "Format de réponse non-JSON reçu de Giant Bomb" });
     }
 
-    if (data.status_code && data.status_code !== 1) {
-      return res.status(500).json({ error: `Erreur API Giant Bomb (Code ${data.status_code})` });
+    if (data.error && data.error !== 'OK') {
+      return res.status(500).json({ error: `Giant Bomb: ${data.error}` });
     }
 
     if (similar === 'true') {
       let similarGames = [];
-      // Si on est parti d'un nom simple, on récupère le premier résultat et on relance pour avoir ses similaires
       if (!id.toString().includes('-') && data.results && data.results.length > 0) {
         const realGuid = data.results[0].guid;
         const subUrl = `https://www.giantbomb.com/api/game/${realGuid}/?api_key=${GB_API_KEY}&format=json`;
@@ -55,7 +52,6 @@ export default async function handler(req, res) {
     return res.status(200).json(data);
 
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: error.message });
   }
 }
