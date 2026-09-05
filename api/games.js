@@ -1,81 +1,149 @@
-function renderResults() {
-    let filtered = rawDataList.filter(item => {
-      if (selectedGenres.size > 0 && item.genres) {
-        const itemGenres = item.genres.map(g => g.name);
-        const matches = [...selectedGenres].every(g => itemGenres.includes(g));
-        if (!matches) return false;
+let cachedToken = null;
+let tokenExpiry = 0;
+
+async function getTwitchToken(clientId, clientSecret) {
+  if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
+  const res = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`, {
+    method: 'POST'
+  });
+  const data = await res.json();
+  cachedToken = data.access_token;
+  tokenExpiry = Date.now() + (data.expires_in * 1000) - 60000;
+  return cachedToken;
+}
+
+export default async function handler(req, res) {
+  const { search, similar, id, news, name } = req.query;
+  
+  const CLIENT_ID = process.env.TWITCH_CLIENT_ID;
+  const CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
+
+  try {
+    const token = await getTwitchToken(CLIENT_ID, CLIENT_SECRET);
+    const headers = {
+      'Client-ID': CLIENT_ID,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'text/plain'
+    };
+
+    // Actualités via Google News RSS
+    if (news === 'true' && name) {
+      const rssRes = await fetch(`https://news.google.com/rss/search?q=${encodeURIComponent(name + ' jeu video')}&hl=fr&gl=FR&ceid=FR:fr`);
+      const rssText = await rssRes.text();
+      
+      const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+      let match;
+      const newsList = [];
+
+      while ((match = itemRegex.exec(rssText)) !== null) {
+        const itemXml = match[1];
+        const titleMatch = itemXml.match(/<title>([\s\S]*?)<\/title>/);
+        const linkMatch = itemXml.match(/<link>([\s\S]*?)<\/link>/);
+        const dateMatch = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+        const sourceMatch = itemXml.match(/<source[^>]*>([\s\S]*?)<\/source>/);
+
+        if (titleMatch && linkMatch && dateMatch) {
+          const cleanTitle = titleMatch[1].replace('<![CDATA[', '').replace(']]>', '').trim();
+          newsList.push({
+            title: cleanTitle,
+            link: linkMatch[1].replace('<![CDATA[', '').replace(']]>', '').trim(),
+            pubDate: dateMatch[1],
+            source: sourceMatch ? sourceMatch[1] : 'Actualité'
+          });
+        }
       }
-      if (selectedPlatforms.size > 0) {
-        const matchesPlatform = [...selectedPlatforms].some(platKey => matchPlatform(item.platforms, platKey));
-        if (!matchesPlatform) return false;
+      return res.status(200).json({ results: newsList.slice(0, 10) });
+    }
+
+    // Jeux similaires optimisés (récupération large + tri par récence)
+    if (similar === 'true' && id) {
+      const targetQuery = `fields similar_games, genres, keywords; where id = ${id};`;
+      const targetRes = await fetch('https://api.igdb.com/v4/games', {
+        method: 'POST',
+        headers,
+        body: targetQuery
+      });
+      const targetData = await targetRes.json();
+
+      let simGamesList = [];
+
+      if (targetData.length > 0) {
+        const gameInfo = targetData[0];
+        const simIds = gameInfo.similar_games || [];
+        const genreIds = (gameInfo.genres || []).join(',');
+
+        if (simIds.length > 0) {
+          // On récupère jusqu'à 100 jeux recommandés au lieu de 20
+          const simQuery = `fields name, cover.url, first_release_date, genres.name, platforms.name, summary, url; where id = (${simIds.join(',')}); limit 100;`;
+          const simRes = await fetch('https://api.igdb.com/v4/games', {
+            method: 'POST',
+            headers,
+            body: simQuery
+          });
+          simGamesList = await simRes.json();
+        }
+
+        // Si la liste est petite ou ancienne, on complète avec les dernières sorties du même genre
+        if (simGamesList.length < 20 && genreIds) {
+          const nowSec = Math.floor(Date.now() / 1000);
+          const fallbackQuery = `fields name, cover.url, first_release_date, genres.name, platforms.name, summary, url; where genres = (${genreIds}) & id != ${id} & first_release_date != null & first_release_date <= ${nowSec}; sort first_release_date desc; limit 50;`;
+          const fallbackRes = await fetch('https://api.igdb.com/v4/games', {
+            method: 'POST',
+            headers,
+            body: fallbackQuery
+          });
+          const fallbackData = await fallbackRes.json();
+          
+          // Fusion des deux listes en éliminant les doublons
+          const existingIds = new Set(simGamesList.map(g => g.id));
+          fallbackData.forEach(g => {
+            if (!existingIds.has(g.id)) {
+              simGamesList.push(g);
+            }
+          });
+        }
       }
-      return true;
-    });
 
-    const sortVal = sortMode.value;
-    if (sortVal === 'RATING_DESC') {
-      filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    } else if (sortVal === 'YEAR_DESC') {
-      filtered.sort((a, b) => getReleaseTimestamp(b) - getReleaseTimestamp(a));
+      // Tri final par date de sortie décroissante (du plus récent au plus ancien)
+      simGamesList.sort((a, b) => (b.first_release_date || 0) - (a.first_release_date || 0));
+
+      return res.status(200).json({ results: simGamesList.map(formatGame) });
     }
 
-    resultsContainer.innerHTML = '';
-
-    if (filtered.length === 0) {
-      loadMoreContainer.style.display = 'none';
-      resultsContainer.innerHTML = '<div style="text-align:center; color:var(--muted); padding: 20px;">Aucun élément ne correspond aux filtres sélectionnés.</div>';
-      return;
+    // Recherche classique
+    if (search) {
+      const query = `search "${search}"; fields name, cover.url, first_release_date, genres.name, platforms.name, summary, storyline, url; limit 10;`;
+      const response = await fetch('https://api.igdb.com/v4/games', {
+        method: 'POST',
+        headers,
+        body: query
+      });
+      const data = await response.json();
+      const results = (Array.isArray(data) ? data : []).map(formatGame);
+      return res.status(200).json({ results });
     }
 
-    const limitedFiltered = filtered.slice(0, visibleCount);
-    const section = document.createElement('div');
-    section.className = 'year-section open';
+    return res.status(400).json({ error: 'Paramètres manquants' });
 
-    const header = document.createElement('div');
-    header.className = 'year-header';
-    header.innerHTML = `<span>Jeux similaires <span class="count">(${filtered.length})</span></span><span class="arrow">▼</span>`;
-    
-    const content = document.createElement('div');
-    content.className = 'year-content grid-layout';
-
-    header.addEventListener('click', () => section.classList.toggle('open'));
-
-    limitedFiltered.forEach(item => content.appendChild(createCard(item)));
-    section.appendChild(header);
-    section.appendChild(content);
-    resultsContainer.appendChild(section);
-
-    if (visibleCount < filtered.length) {
-      loadMoreContainer.style.display = 'block';
-    } else {
-      loadMoreContainer.style.display = 'none';
-    }
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
   }
+}
 
-  function createCard(item) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    
-    const title = item.name;
-    const year = getReleaseYear(item);
-    const imgUrl = item.background_image || '';
-    const genres = item.genres ? item.genres.slice(0, 2).map(g => g.name).join(' • ') : '';
-    const ratingStr = item.rating ? `⭐ ${item.rating}/100` : '⭐ N/A';
-
-    card.innerHTML = `
-      <div class="card-img-wrapper">
-        <img src="${imgUrl}" alt="${title}" loading="lazy">
-      </div>
-      <div class="card-body">
-        <div class="card-title">${title}</div>
-        <div class="card-genres">${genres}</div>
-        <div class="card-meta" style="display:flex; justify-content:space-between;">
-          <span>📅 ${year}</span>
-          <span>${ratingStr}</span>
-        </div>
-      </div>
-    `;
-
-    card.addEventListener('click', () => openModal(item));
-    return card;
+function formatGame(g) {
+  let imageUrl = '';
+  if (g.cover && g.cover.url) {
+    imageUrl = 'https:' + g.cover.url.replace('t_thumb', 't_cover_big');
   }
+  return {
+    id: g.id,
+    name: g.name,
+    released: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().split('T')[0] : null,
+    first_release_date: g.first_release_date || null,
+    background_image: imageUrl,
+    description: g.summary || g.storyline || 'Aucune description disponible.',
+    genres: g.genres || [],
+    platforms: g.platforms || [],
+    site_detail_url: g.url
+  };
+}
