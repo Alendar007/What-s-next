@@ -235,7 +235,25 @@
     .tag { background: var(--bg); border: 1px solid var(--border); padding: 4px 10px; border-radius: 16px; font-size: 12px; cursor: pointer; color: var(--text); display: inline-flex; align-items: center; gap: 4px; }
     .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
+    /* Disposition Responsive de la Vue Infos */
+    .info-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    @media (min-width: 768px) {
+      .info-layout {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+      .info-layout > .year-section {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+
     .year-section { margin-bottom: 14px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card-bg); }
+    .info-layout .year-section { margin-bottom: 0; }
     .year-header { padding: 10px 14px; background: var(--card-bg); font-weight: bold; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; color: var(--text); }
     .year-header:hover { opacity: 0.9; }
     .year-header .count { font-size: 12px; color: var(--muted); font-weight: normal; }
@@ -636,6 +654,9 @@
   function renderInfoView(game, newsList) {
     resultsContainer.innerHTML = '';
 
+    const infoLayout = document.createElement('div');
+    infoLayout.className = 'info-layout';
+
     // Fiche détaillée
     const gameSection = document.createElement('div');
     gameSection.className = 'year-section open';
@@ -656,14 +677,13 @@
             <div style="font-size:16px; font-weight:bold; color:var(--text);">${title}</div>
             <div style="font-size:11px; color:var(--muted);">📅 Sortie : ${year}</div>
             <div style="font-size:10px; color:var(--accent);">${genres}</div>
-            <div style="font-size:11px; color:var(--muted); line-height:1.4; max-height:120px; overflow-y:auto;">${desc}</div>
+            <div style="font-size:11px; color:var(--muted); line-height:1.4; max-height:180px; overflow-y:auto;">${desc}</div>
             ${link ? `<a href="${link}" target="_blank" class="btn-link" style="width:fit-content; margin-top:4px;">Fiche IGDB</a>` : ''}
           </div>
         </div>
       </div>
     `;
     gameSection.querySelector('.year-header').addEventListener('click', () => gameSection.classList.toggle('open'));
-    resultsContainer.appendChild(gameSection);
 
     // Actualités
     const newsSection = document.createElement('div');
@@ -696,7 +716,10 @@
       </div>
     `;
     newsSection.querySelector('.year-header').addEventListener('click', () => newsSection.classList.toggle('open'));
-    resultsContainer.appendChild(newsSection);
+
+    infoLayout.appendChild(gameSection);
+    infoLayout.appendChild(newsSection);
+    resultsContainer.appendChild(infoLayout);
   }
 
   function buildFilters() {
@@ -828,7 +851,6 @@
       </div>
     `;
 
-    // Ouverture de la modale d'information au clic sur un jeu similaire
     card.addEventListener('click', () => openModal(item));
     return card;
   }
