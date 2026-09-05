@@ -55,32 +55,64 @@ export default async function handler(req, res) {
       return res.status(200).json({ results: newsList.slice(0, 10) });
     }
 
-    // Jeux similaires avec récupération des plateformes
+    // Jeux similaires optimisés (récupération large + tri par récence)
     if (similar === 'true' && id) {
-      const query = `fields similar_games; where id = ${id};`;
-      const response = await fetch('https://api.igdb.com/v4/games', {
+      const targetQuery = `fields similar_games, genres, keywords; where id = ${id};`;
+      const targetRes = await fetch('https://api.igdb.com/v4/games', {
         method: 'POST',
         headers,
-        body: query
+        body: targetQuery
       });
-      const data = await response.json();
-      if (data.length > 0 && data[0].similar_games) {
-        const simIds = data[0].similar_games.slice(0, 20).join(',');
-        const simQuery = `fields name, cover.url, first_release_date, genres.name, platforms.name, summary, url; where id = (${simIds}); limit 20;`;
-        const simRes = await fetch('https://api.igdb.com/v4/games', {
-          method: 'POST',
-          headers,
-          body: simQuery
-        });
-        const simData = await simRes.json();
-        return res.status(200).json({ results: simData.map(formatGame) });
+      const targetData = await targetRes.json();
+
+      let simGamesList = [];
+
+      if (targetData.length > 0) {
+        const gameInfo = targetData[0];
+        const simIds = gameInfo.similar_games || [];
+        const genreIds = (gameInfo.genres || []).join(',');
+
+        if (simIds.length > 0) {
+          // On récupère jusqu'à 100 jeux recommandés au lieu de 20
+          const simQuery = `fields name, cover.url, first_release_date, genres.name, platforms.name, summary, url; where id = (${simIds.join(',')}); limit 100;`;
+          const simRes = await fetch('https://api.igdb.com/v4/games', {
+            method: 'POST',
+            headers,
+            body: simQuery
+          });
+          simGamesList = await simRes.json();
+        }
+
+        // Si la liste est petite ou ancienne, on complète avec les dernières sorties du même genre
+        if (simGamesList.length < 20 && genreIds) {
+          const nowSec = Math.floor(Date.now() / 1000);
+          const fallbackQuery = `fields name, cover.url, first_release_date, genres.name, platforms.name, summary, url; where genres = (${genreIds}) & id != ${id} & first_release_date != null & first_release_date <= ${nowSec}; sort first_release_date desc; limit 50;`;
+          const fallbackRes = await fetch('https://api.igdb.com/v4/games', {
+            method: 'POST',
+            headers,
+            body: fallbackQuery
+          });
+          const fallbackData = await fallbackRes.json();
+          
+          // Fusion des deux listes en éliminant les doublons
+          const existingIds = new Set(simGamesList.map(g => g.id));
+          fallbackData.forEach(g => {
+            if (!existingIds.has(g.id)) {
+              simGamesList.push(g);
+            }
+          });
+        }
       }
-      return res.status(200).json({ results: [] });
+
+      // Tri final par date de sortie décroissante (du plus récent au plus ancien)
+      simGamesList.sort((a, b) => (b.first_release_date || 0) - (a.first_release_date || 0));
+
+      return res.status(200).json({ results: simGamesList.map(formatGame) });
     }
 
     // Recherche classique
     if (search) {
-      const query = `search "${search}"; fields name, cover.url, first_release_date, genres.name, platforms.name, summary, storyline, url; limit 6;`;
+      const query = `search "${search}"; fields name, cover.url, first_release_date, genres.name, platforms.name, summary, storyline, url; limit 10;`;
       const response = await fetch('https://api.igdb.com/v4/games', {
         method: 'POST',
         headers,
@@ -107,6 +139,7 @@ function formatGame(g) {
     id: g.id,
     name: g.name,
     released: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().split('T')[0] : null,
+    first_release_date: g.first_release_date || null,
     background_image: imageUrl,
     description: g.summary || g.storyline || 'Aucune description disponible.',
     genres: g.genres || [],
