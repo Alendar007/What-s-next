@@ -258,6 +258,42 @@
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
   gap: 12px; 
 }
+ /* Compresse l'en-tête fixe uniquement quand l'écran est à l'horizontale (ou très bas) */
+@media (orientation: landscape) and (max-height: 600px) {
+  .container { 
+    padding-top: 5px; 
+    padding-bottom: 5px; 
+  }
+  
+  /* Masque le titre principal pour gagner une ligne entière */
+  h1 { 
+    display: none; 
+  }
+  
+  .site-header { 
+    margin-bottom: 5px; 
+    flex-direction: row; 
+    justify-content: center;
+  }
+  
+  .search-box { 
+    margin-bottom: 5px; 
+  }
+  
+  /* Réduit la hauteur du champ de saisie */
+  input { 
+    padding: 6px 12px; 
+  }
+  
+  .controls-bar { 
+    margin-bottom: 5px; 
+  }
+  
+  /* Amincit la barre de tri */
+  .sort-bar { 
+    padding: 4px 8px; 
+  }
+} 
   </style>
 </head>
 <body>
