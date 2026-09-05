@@ -1,5 +1,6 @@
 export default async function handler(req, res) {
   const { search, type = 'anime', news, similar, id, title } = req.query;
+  const mediaType = type === 'manga' ? 'MANGA' : 'ANIME';
 
   try {
     // Actualités via Google News RSS (< 6 mois)
@@ -36,15 +37,16 @@ export default async function handler(req, res) {
       return res.status(200).json({ results: newsList.slice(0, 10) });
     }
 
-    // Titres similaires via AniList Recommendations
+    // Titres similaires filtrés par type (ANIME ou MANGA)
     if (similar === 'true' && id) {
       const graphqlQuery = `
         query ($id: Int) {
           Media(id: $id) {
-            recommendations(page: 1, perPage: 20) {
+            recommendations(page: 1, perPage: 25) {
               nodes {
                 mediaRecommendation {
                   id
+                  type
                   title {
                     userPreferred
                     romaji
@@ -76,8 +78,10 @@ export default async function handler(req, res) {
 
       const aniListData = await aniListRes.json();
       const recNodes = aniListData.data?.Media?.recommendations?.nodes || [];
+      
+      // Filtrage strict : on ne garde que les recommandations du type sélectionné
       const results = recNodes
-        .filter(n => n.mediaRecommendation !== null)
+        .filter(n => n.mediaRecommendation && n.mediaRecommendation.type === mediaType)
         .map(n => {
           const item = n.mediaRecommendation;
           return {
@@ -96,12 +100,12 @@ export default async function handler(req, res) {
 
     // Recherche standard AniList
     if (search) {
-      const mediaType = type === 'manga' ? 'MANGA' : 'ANIME';
       const graphqlQuery = `
         query ($search: String, $type: MediaType) {
           Page(perPage: 6) {
             media(search: $search, type: $type) {
               id
+              type
               title {
                 userPreferred
                 romaji
