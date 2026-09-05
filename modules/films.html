@@ -258,42 +258,66 @@
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
   gap: 12px; 
 }
- /* Compresse l'en-tête fixe uniquement quand l'écran est à l'horizontale (ou très bas) */
-@media (orientation: landscape) and (max-height: 600px) {
-  .container { 
-    padding-top: 5px; 
-    padding-bottom: 5px; 
+ /* Alignement ultra-compact sur une seule ligne en mode paysage */
+@media (orientation: landscape) and (max-height: 500px) {
+  .container {
+    padding: 4px 10px 4px 55px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
   }
-  
-  /* Masque le titre principal pour gagner une ligne entière */
+
   h1 { 
     display: none; 
   }
-  
-  .site-header { 
-    margin-bottom: 5px; 
-    flex-direction: row; 
-    justify-content: center;
+
+  .site-header {
+    margin-bottom: 0;
+    flex-shrink: 0;
   }
-  
-  .search-box { 
-    margin-bottom: 5px; 
+
+  .search-box {
+    margin: 0;
+    flex: 1;
   }
-  
-  /* Réduit la hauteur du champ de saisie */
-  input { 
-    padding: 6px 12px; 
+
+  input {
+    padding: 4px 10px;
+    height: 32px;
   }
-  
-  .controls-bar { 
-    margin-bottom: 5px; 
+
+  .controls-bar {
+    margin: 0;
+    flex-shrink: 0;
   }
-  
-  /* Amincit la barre de tri */
-  .sort-bar { 
-    padding: 4px 8px; 
+
+  .sort-bar {
+    padding: 2px 6px;
+    height: 32px;
+    box-sizing: border-box;
   }
-} 
+
+  /* Masque le texte "TRIER PAR :" pour gagner de la largeur */
+  .sort-control label { 
+    display: none; 
+  }
+
+  .sort-control select {
+    padding: 2px 4px;
+    font-size: 11px;
+  }
+
+  .btn-toggle-filters {
+    margin-top: 0;
+    height: 26px;
+    padding: 0 8px;
+  }
+
+  .results-scroll-area {
+    padding: 8px 10px 20px 55px;
+  }
+}
   </style>
 </head>
 <body>
