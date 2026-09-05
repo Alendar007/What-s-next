@@ -348,9 +348,8 @@
           <option value="RATING_DESC" selected>⭐ Note (meilleurs en premier)</option>
           <option value="YEAR_DESC">📅 Année (récent ➔ ancien)</option>
         </select>
-  </div>
+      </div>
 
-      <!-- Logos CDN SimpleIcons avec Fallback Texte OnError -->
       <div id="platformBar" class="platform-bar">
         <button type="button" class="plat-btn" data-platform="playstation" title="PlayStation">
           <img src="https://cdn.simpleicons.org/playstation/f8fafc" alt="PlayStation" onerror="this.replaceWith('PlayStation')">
@@ -465,7 +464,6 @@
   let selectedPlatforms = new Set();
   let debounceTimer;
 
-  // Extraction universelle de timestamp (gère ISO Strings et Timestamps IGDB)
   function getReleaseTimestamp(item) {
     if (!item) return 0;
     const val = item.released || item.first_release_date || (item.release_dates && item.release_dates[0] ? item.release_dates[0].date : null);
@@ -767,7 +765,6 @@
       return true;
     });
 
-    // Gestion du tri : Note par défaut, ou Année décroissante
     const sortVal = sortMode.value;
     if (sortVal === 'RATING_DESC') {
       filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
@@ -821,6 +818,7 @@
     const year = getReleaseYear(item);
     const imgUrl = item.background_image || '';
     const genres = item.genres ? item.genres.slice(0, 2).map(g => g.name).join(' • ') : '';
+    const ratingStr = item.rating ? `⭐ ${item.rating}/100` : '⭐ N/A';
 
     card.innerHTML = `
       <div class="card-img-wrapper">
@@ -829,7 +827,10 @@
       <div class="card-body">
         <div class="card-title">${title}</div>
         <div class="card-genres">${genres}</div>
-        <div class="card-meta">📅 ${year}</div>
+        <div class="card-meta" style="display:flex; justify-content:space-between;">
+          <span>📅 ${year}</span>
+          <span>${ratingStr}</span>
+        </div>
       </div>
     `;
 
