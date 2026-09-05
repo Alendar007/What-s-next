@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   const { search, type = 'anime', news, title } = req.query;
 
   try {
-    // Actualités de moins de 6 mois via Google News RSS
+    // Actualités via Google News RSS
     if (news === 'true' && title) {
       const queryTerm = `${title} ${type === 'manga' ? 'manga' : 'anime'}`;
       const rssRes = await fetch(`https://news.google.com/rss/search?q=${encodeURIComponent(queryTerm)}&hl=fr&gl=FR&ceid=FR:fr`);
@@ -36,24 +36,60 @@ export default async function handler(req, res) {
       return res.status(200).json({ results: newsList.slice(0, 10) });
     }
 
-    // Recherche d'Animé ou Manga via Jikan API (MyAnimeList)
+    // Recherche via AniList GraphQL (Rapide et sans blocage 504)
     if (search) {
-      const endpoint = type === 'manga' ? 'manga' : 'anime';
-      const jikanRes = await fetch(`https://api.jikan.moe/v4/${endpoint}?q=${encodeURIComponent(search)}&limit=6`);
-      
-      if (!jikanRes.ok) {
-        throw new Error(`Erreur API Jikan: ${jikanRes.status}`);
+      const mediaType = type === 'manga' ? 'MANGA' : 'ANIME';
+      const graphqlQuery = `
+        query ($search: String, $type: MediaType) {
+          Page(perPage: 6) {
+            media(search: $search, type: $type) {
+              id
+              title {
+                userPreferred
+                romaji
+                english
+              }
+              startDate {
+                year
+              }
+              coverImage {
+                large
+              }
+              description(asHtml: false)
+              averageScore
+              genres
+            }
+          }
+        }
+      `;
+
+      const aniListRes = await fetch('https://graphql.anilist.co', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          query: graphqlQuery,
+          variables: { search, type: mediaType }
+        })
+      });
+
+      if (!aniListRes.ok) {
+        throw new Error(`Erreur API AniList : ${aniListRes.status}`);
       }
 
-      const jikanData = await jikanRes.json();
-      const results = (jikanData.data || []).map(item => ({
-        id: item.mal_id,
-        title: item.title,
-        year: item.year || (item.published?.from ? item.published.from.split('-')[0] : (item.aired?.from ? item.aired.from.split('-')[0] : 'N/A')),
-        image: item.images?.jpg?.large_image_url || item.images?.jpg?.image_url,
-        synopsis: item.synopsis || 'Aucun synopsis disponible.',
-        score: item.score || null,
-        genres: (item.genres || []).map(g => g.name)
+      const aniListData = await aniListRes.json();
+      const mediaList = aniListData.data?.Page?.media || [];
+
+      const results = mediaList.map(item => ({
+        id: item.id,
+        title: item.title.userPreferred || item.title.romaji || item.title.english,
+        year: item.startDate?.year || 'N/A',
+        image: item.coverImage?.large,
+        synopsis: item.description ? item.description.replace(/<[^>]*>?/gm, '') : 'Aucun synopsis disponible.',
+        score: item.averageScore ? (item.averageScore / 10).toFixed(1) : null,
+        genres: item.genres || []
       }));
 
       return res.status(200).json({ results });
