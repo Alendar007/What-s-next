@@ -1,8 +1,8 @@
 export default async function handler(req, res) {
-  const { search, type = 'anime', news, title } = req.query;
+  const { search, type = 'anime', news, similar, id, title } = req.query;
 
   try {
-    // Actualités via Google News RSS
+    // Actualités via Google News RSS (< 6 mois)
     if (news === 'true' && title) {
       const queryTerm = `${title} ${type === 'manga' ? 'manga' : 'anime'}`;
       const rssRes = await fetch(`https://news.google.com/rss/search?q=${encodeURIComponent(queryTerm)}&hl=fr&gl=FR&ceid=FR:fr`);
@@ -36,7 +36,65 @@ export default async function handler(req, res) {
       return res.status(200).json({ results: newsList.slice(0, 10) });
     }
 
-    // Recherche via AniList GraphQL (Rapide et sans blocage 504)
+    // Titres similaires via AniList Recommendations
+    if (similar === 'true' && id) {
+      const graphqlQuery = `
+        query ($id: Int) {
+          Media(id: $id) {
+            recommendations(page: 1, perPage: 20) {
+              nodes {
+                mediaRecommendation {
+                  id
+                  title {
+                    userPreferred
+                    romaji
+                    english
+                  }
+                  startDate {
+                    year
+                  }
+                  coverImage {
+                    large
+                  }
+                  description(asHtml: false)
+                  averageScore
+                  genres
+                }
+              }
+            }
+          }
+        }
+      `;
+
+      const aniListRes = await fetch('https://graphql.anilist.co', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ query: graphqlQuery, variables: { id: parseInt(id) } })
+      });
+
+      if (!aniListRes.ok) throw new Error(`Erreur AniList : ${aniListRes.status}`);
+
+      const aniListData = await aniListRes.json();
+      const recNodes = aniListData.data?.Media?.recommendations?.nodes || [];
+      const results = recNodes
+        .filter(n => n.mediaRecommendation !== null)
+        .map(n => {
+          const item = n.mediaRecommendation;
+          return {
+            id: item.id,
+            title: item.title.userPreferred || item.title.romaji || item.title.english,
+            year: item.startDate?.year || 'N/A',
+            image: item.coverImage?.large,
+            synopsis: item.description ? item.description.replace(/<[^>]*>?/gm, '') : 'Aucun synopsis disponible.',
+            score: item.averageScore ? (item.averageScore / 10).toFixed(1) : null,
+            genres: item.genres || []
+          };
+        });
+
+      return res.status(200).json({ results });
+    }
+
+    // Recherche standard AniList
     if (search) {
       const mediaType = type === 'manga' ? 'MANGA' : 'ANIME';
       const graphqlQuery = `
@@ -65,19 +123,14 @@ export default async function handler(req, res) {
 
       const aniListRes = await fetch('https://graphql.anilist.co', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
           query: graphqlQuery,
           variables: { search, type: mediaType }
         })
       });
 
-      if (!aniListRes.ok) {
-        throw new Error(`Erreur API AniList : ${aniListRes.status}`);
-      }
+      if (!aniListRes.ok) throw new Error(`Erreur AniList : ${aniListRes.status}`);
 
       const aniListData = await aniListRes.json();
       const mediaList = aniListData.data?.Page?.media || [];
