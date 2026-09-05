@@ -29,6 +29,11 @@
     .results-scroll-area::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; transition: background 0.2s; }
     .results-scroll-area:hover::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); }
 
+    /* Masquer la barre de scroll interne des cartes pour un rendu propre */
+    .card-content::-webkit-scrollbar { width: 4px; }
+    .card-content::-webkit-scrollbar-track { background: transparent; }
+    .card-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
     body {
       font-family: system-ui, -apple-system, sans-serif;
       background: var(--bg);
@@ -150,7 +155,6 @@
 
     .controls-bar { margin: 0 auto 15px auto; max-width: 100%; display: none; }
     
-    /* Barre de contrôle unifiée */
     .sort-bar { 
       display: flex; 
       gap: 10px; 
@@ -190,7 +194,6 @@
     }
     .btn-toggle-filters:hover { border-color: var(--accent); }
 
-    /* Barre d'icônes intégrée */
     .platform-bar {
       display: flex;
       align-items: center;
@@ -236,15 +239,7 @@
     .tag { background: var(--bg); border: 1px solid var(--border); padding: 4px 10px; border-radius: 16px; font-size: 12px; cursor: pointer; color: var(--text); display: inline-flex; align-items: center; gap: 4px; }
     .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-    /* Disposition Responsive Vue Infos */
-    .info-layout { display: flex; flex-direction: column; gap: 14px; }
-    @media (min-width: 768px) {
-      .info-layout { flex-direction: row; align-items: flex-start; }
-      .info-layout > .year-section { flex: 1; min-width: 0; }
-    }
-
     .year-section { margin-bottom: 14px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card-bg); }
-    .info-layout .year-section { margin-bottom: 0; }
     .year-header { padding: 10px 14px; background: var(--card-bg); font-weight: bold; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; color: var(--text); }
     .year-header:hover { opacity: 0.9; }
     .year-header .count { font-size: 12px; color: var(--muted); font-weight: normal; }
@@ -264,7 +259,6 @@
     .card-genres { font-size: 10px; color: var(--accent); margin-bottom: 6px; }
     .card-meta { font-size: 10px; color: var(--muted); margin-top: auto; }
 
-    /* Modal coulissant pour les détails */
     .modal-backdrop { 
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
       background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); 
@@ -298,7 +292,6 @@
     .modal-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     .btn-link { background: var(--accent); color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; display: inline-block; }
 
-    /* Animation Squelette */
     @keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: 200px 0; } }
     .skeleton { background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%); background-size: 400px 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
     .skeleton-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; height: 250px; display: flex; flex-direction: column; padding: 8px; gap: 8px; box-sizing: border-box; }
@@ -311,7 +304,6 @@
     .btn-load-more:hover { border-color: var(--accent); background: var(--accent); color: #fff; }
     .status { text-align: center; margin-top: 10px; color: var(--muted); font-size: 13px; }
 
-    /* Mode Paysage Ultra-Compact */
     @media (orientation: landscape) and (max-height: 500px) {
       .container { padding: 4px 10px 4px 55px; display: flex; flex-direction: row; align-items: center; gap: 8px; }
       h1, .site-subtitle { display: none; }
@@ -356,10 +348,7 @@
         </select>
       </div>
 
-      <!-- Barre de plateformes avec SVGs inline robustes et garantis -->
       <div id="platformBar" class="platform-bar">
-        
-        <!-- PlayStation -->
         <button type="button" class="plat-btn" data-platform="playstation" title="PlayStation">
           <svg viewBox="0 0 32 24" width="24" height="18" style="display:block; flex-shrink:0;">
             <path fill="#DF0024" d="M3 2v18h3.5v-6.5h2.5c2.2 0 3.8-1 3.8-3.2 0-2.1-1.6-3.1-3.8-3.1H3zm3.5 3.2h1.8c.8 0 1.4.3 1.4 1.3 0 1-.6 1.3-1.4 1.3H6.5V5.2z"/>
@@ -367,7 +356,6 @@
           </svg>
         </button>
 
-        <!-- Xbox -->
         <button type="button" class="plat-btn" data-platform="xbox" title="Xbox">
           <svg viewBox="0 0 24 24" width="20" height="20" style="display:block; flex-shrink:0;">
             <circle cx="12" cy="12" r="12" fill="#107C41"/>
@@ -375,7 +363,6 @@
           </svg>
         </button>
 
-        <!-- Nintendo -->
         <button type="button" class="plat-btn" data-platform="nintendo" title="Nintendo">
           <svg viewBox="0 0 85 28" width="34" height="14" style="display:block; flex-shrink:0;">
             <rect width="85" height="28" rx="14" fill="#E60012"/>
@@ -383,7 +370,6 @@
           </svg>
         </button>
 
-        <!-- SEGA -->
         <button type="button" class="plat-btn" data-platform="sega" title="Sega">
           <svg viewBox="0 0 42 16" width="30" height="12" style="display:block; flex-shrink:0;">
             <rect width="42" height="16" rx="3" fill="#0060A8"/>
@@ -391,7 +377,6 @@
           </svg>
         </button>
 
-        <!-- PC -->
         <button type="button" class="plat-btn" data-platform="pc" title="PC">
           <svg viewBox="0 0 32 32" width="18" height="18" style="display:block; flex-shrink:0;">
             <rect x="2" y="4" width="28" height="24" rx="6" fill="#2563EB"/>
@@ -420,7 +405,6 @@
   </div>
 </div>
 
-<!-- Modal coulissant pour les détails d'un jeu -->
 <div id="modalBackdrop" class="modal-backdrop">
   <div class="modal-card" id="modalCard">
     <div class="modal-handle-area" id="modalHandleArea">
@@ -493,7 +477,6 @@
   let selectedPlatforms = new Set();
   let debounceTimer;
 
-  // Clic On/Off icônes rapidement
   document.querySelectorAll('.plat-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const platKey = btn.getAttribute('data-platform');
@@ -640,51 +623,60 @@
     resultsContainer.innerHTML = '';
 
     const infoLayout = document.createElement('div');
-    infoLayout.className = 'info-layout';
+    infoLayout.style.cssText = 'display: flex; gap: 20px; width: 100%; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;';
 
-    // Fiche détaillée
-    const gameSection = document.createElement('div');
-    gameSection.className = 'year-section open';
-    
     const title = game.name;
     const year = game.released ? game.released.split('-')[0] : 'N/A';
     const imgUrl = game.background_image || '';
-    const genres = game.genres ? game.genres.map(g => g.name).join(' • ') : '';
-    const desc = game.description || 'Aucune description disponible.';
+    const genres = game.genres ? game.genres.map(g => g.name).join(' • ') : 'N/A';
+    const desc = game.description_raw || game.description || 'Aucune description disponible.';
     const link = game.site_detail_url || '';
+    const developers = game.developers ? game.developers.map(d => d.name).join(', ') : 'N/A';
+    const publishers = game.publishers ? game.publishers.map(p => p.name).join(', ') : 'N/A';
+    const pegi = game.esrb_rating ? game.esrb_rating.name : 'Non spécifié';
 
-    gameSection.innerHTML = `
-      <div class="year-header"><span>Fiche détaillée</span><span class="arrow">▼</span></div>
-      <div class="year-content">
-        <div style="display:flex; gap:16px; flex-wrap:wrap;">
-          <img src="${imgUrl}" alt="${title}" style="width:130px; height:170px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
-          <div style="flex:1; min-width:200px; display:flex; flex-direction:column; gap:6px;">
-            <div style="font-size:16px; font-weight:bold; color:var(--text);">${title}</div>
-            <div style="font-size:11px; color:var(--muted);">📅 Sortie : ${year}</div>
-            <div style="font-size:10px; color:var(--accent);">${genres}</div>
-            <div style="font-size:11px; color:var(--muted); line-height:1.4; max-height:180px; overflow-y:auto;">${desc}</div>
-            ${link ? `<a href="${link}" target="_blank" class="btn-link" style="width:fit-content; margin-top:4px;">Fiche IGDB</a>` : ''}
+    // Fiche Détaillée Card
+    const gameCard = document.createElement('div');
+    gameCard.style.cssText = 'flex: 1; min-width: 300px; height: 480px; background: var(--card-bg); color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); overflow: hidden;';
+    
+    gameCard.innerHTML = `
+      <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; color: var(--accent); border-bottom: 2px solid var(--border); padding-bottom: 8px;">Fiche de Jeu</h3>
+      <div style="overflow-y: auto; flex-grow: 1; padding-right: 4px;" class="card-content">
+        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+          <img src="${imgUrl}" alt="${title}" style="width: 100px; height: 140px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border);">
+          <div style="flex: 1; min-width: 0;">
+            <h4 style="margin: 0 0 8px 0; font-size: 1rem; color: var(--text);">${title}</h4>
+            <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: var(--muted);">
+              <li style="margin-bottom: 4px;"><strong style="color: var(--text);">Développeur :</strong> ${developers}</li>
+              <li style="margin-bottom: 4px;"><strong style="color: var(--text);">Éditeur :</strong> ${publishers}</li>
+              <li style="margin-bottom: 4px;"><strong style="color: var(--text);">Sortie :</strong> ${year}</li>
+              <li style="margin-bottom: 4px;"><strong style="color: var(--text);">Classification :</strong> ${pegi}</li>
+              <li style="margin-bottom: 4px;"><strong style="color: var(--text);">Genre :</strong> ${genres}</li>
+            </ul>
           </div>
         </div>
+        <div style="font-size: 0.85rem; line-height: 1.5; color: var(--muted);">
+          ${desc}
+        </div>
+        ${link ? `<div style="margin-top: 15px;"><a href="${link}" target="_blank" class="btn-link">Fiche IGDB</a></div>` : ''}
       </div>
     `;
-    gameSection.querySelector('.year-header').addEventListener('click', () => gameSection.classList.toggle('open'));
 
-    // Actualités
-    const newsSection = document.createElement('div');
-    newsSection.className = 'year-section open';
-    
+    // News Card
+    const newsCard = document.createElement('div');
+    newsCard.style.cssText = 'flex: 1; min-width: 300px; height: 480px; background: var(--card-bg); color: var(--text); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); overflow: hidden;';
+
     let newsContentHtml = '';
     if (newsList.length === 0) {
-      newsContentHtml = '<div style="color:var(--muted); font-size:12px; padding:6px 0;">Aucune actualité récente trouvée.</div>';
+      newsContentHtml = '<div style="color: var(--muted); font-size: 12px; padding: 6px 0;">Aucune actualité récente trouvée.</div>';
     } else {
-      newsContentHtml = '<div style="display:flex; flex-direction:column; gap:8px;">';
+      newsContentHtml = '<div style="display: flex; flex-direction: column; gap: 8px;">';
       newsList.forEach(n => {
         const dateStr = new Date(n.pubDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
         newsContentHtml += `
-          <a href="${n.link}" target="_blank" style="text-decoration:none; background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:6px; display:flex; flex-direction:column; gap:4px; transition:border-color 0.2s;">
-            <div style="font-size:12px; font-weight:bold; color:var(--text);">${n.title}</div>
-            <div style="font-size:10px; color:var(--muted); display:flex; justify-content:space-between;">
+          <a href="${n.link}" target="_blank" style="text-decoration: none; background: var(--bg); border: 1px solid var(--border); padding: 10px; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; transition: border-color 0.2s;">
+            <div style="font-size: 12px; font-weight: bold; color: var(--text);">${n.title}</div>
+            <div style="font-size: 10px; color: var(--muted); display: flex; justify-content: space-between;">
               <span>📰 ${n.source}</span>
               <span>📅 ${dateStr}</span>
             </div>
@@ -694,16 +686,15 @@
       newsContentHtml += '</div>';
     }
 
-    newsSection.innerHTML = `
-      <div class="year-header"><span>Actualités récentes <span class="count">(${newsList.length})</span></span><span class="arrow">▼</span></div>
-      <div class="year-content">
+    newsCard.innerHTML = `
+      <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; color: var(--accent); border-bottom: 2px solid var(--border); padding-bottom: 8px;">Dernières Actualités (${newsList.length})</h3>
+      <div style="overflow-y: auto; flex-grow: 1; padding-right: 4px;" class="card-content">
         ${newsContentHtml}
       </div>
     `;
-    newsSection.querySelector('.year-header').addEventListener('click', () => newsSection.classList.toggle('open'));
 
-    infoLayout.appendChild(gameSection);
-    infoLayout.appendChild(newsSection);
+    infoLayout.appendChild(gameCard);
+    infoLayout.appendChild(newsCard);
     resultsContainer.appendChild(infoLayout);
   }
 
