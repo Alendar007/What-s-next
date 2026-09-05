@@ -150,7 +150,6 @@
 
     .controls-bar { margin: 0 auto 15px auto; max-width: 100%; display: none; }
     
-    /* Barre de contrôle unifiée */
     .sort-bar { 
       display: flex; 
       gap: 10px; 
@@ -176,7 +175,7 @@
       border: 1px solid var(--border); 
       color: var(--text); 
       padding: 0 12px;
-      height: 34px;
+      height: 36px;
       border-radius: 6px; 
       cursor: pointer; 
       font-size: 13px; 
@@ -190,7 +189,6 @@
     }
     .btn-toggle-filters:hover { border-color: var(--accent); }
 
-    /* Barre d'icônes intégrée */
     .platform-bar {
       display: flex;
       align-items: center;
@@ -198,21 +196,22 @@
       flex-wrap: wrap;
     }
     .plat-btn {
-      background: var(--bg);
+      background: transparent;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      height: 34px;
-      padding: 0 8px;
+      border-radius: 8px;
+      height: 36px;
+      padding: 0 4px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s ease;
       flex-shrink: 0;
+      overflow: hidden;
     }
     .plat-btn img {
       display: block;
-      height: 20px;
+      height: 22px;
       width: auto;
       object-fit: contain;
       flex-shrink: 0;
@@ -222,7 +221,6 @@
       transform: translateY(-1px);
     }
     .plat-btn.active {
-      background: var(--card-bg);
       border-color: var(--accent);
       box-shadow: 0 0 0 2px var(--accent);
     }
@@ -236,7 +234,6 @@
     .tag { background: var(--bg); border: 1px solid var(--border); padding: 4px 10px; border-radius: 16px; font-size: 12px; cursor: pointer; color: var(--text); display: inline-flex; align-items: center; gap: 4px; }
     .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-    /* Disposition Responsive Vue Infos */
     .info-layout { display: flex; flex-direction: column; gap: 14px; }
     @media (min-width: 768px) {
       .info-layout { flex-direction: row; align-items: flex-start; }
@@ -264,7 +261,6 @@
     .card-genres { font-size: 10px; color: var(--accent); margin-bottom: 6px; }
     .card-meta { font-size: 10px; color: var(--muted); margin-top: auto; }
 
-    /* Modal coulissant pour les détails */
     .modal-backdrop { 
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
       background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); 
@@ -298,7 +294,6 @@
     .modal-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     .btn-link { background: var(--accent); color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; display: inline-block; }
 
-    /* Animation Squelette */
     @keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: 200px 0; } }
     .skeleton { background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%); background-size: 400px 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
     .skeleton-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; height: 250px; display: flex; flex-direction: column; padding: 8px; gap: 8px; box-sizing: border-box; }
@@ -311,7 +306,6 @@
     .btn-load-more:hover { border-color: var(--accent); background: var(--accent); color: #fff; }
     .status { text-align: center; margin-top: 10px; color: var(--muted); font-size: 13px; }
 
-    /* Mode Paysage Ultra-Compact */
     @media (orientation: landscape) and (max-height: 500px) {
       .container { padding: 4px 10px 4px 55px; display: flex; flex-direction: row; align-items: center; gap: 8px; }
       h1, .site-subtitle { display: none; }
@@ -323,7 +317,8 @@
       .sort-control label { display: none; }
       .sort-control select { padding: 2px 4px; font-size: 11px; }
       .btn-toggle-filters { height: 26px; padding: 0 8px; }
-      .plat-btn { height: 28px; padding: 0 6px; }
+      .plat-btn { height: 28px; padding: 0 2px; }
+      .plat-btn img { height: 20px; }
       .results-scroll-area { padding: 8px 10px 20px 55px; }
     }
   </style>
@@ -356,47 +351,21 @@
         </select>
       </div>
 
-      <!-- Barre de plateformes avec SVGs inline robustes et garantis -->
       <div id="platformBar" class="platform-bar">
-        
-        <!-- PlayStation -->
         <button type="button" class="plat-btn" data-platform="playstation" title="PlayStation">
-          <svg viewBox="0 0 32 24" width="24" height="18" style="display:block; flex-shrink:0;">
-            <path fill="#DF0024" d="M3 2v18h3.5v-6.5h2.5c2.2 0 3.8-1 3.8-3.2 0-2.1-1.6-3.1-3.8-3.1H3zm3.5 3.2h1.8c.8 0 1.4.3 1.4 1.3 0 1-.6 1.3-1.4 1.3H6.5V5.2z"/>
-            <path fill="#003087" d="M14.5 10.2c0-2.2 1.8-3.4 4.5-3.4 1.6 0 3 .4 4.1 1.1l-1 2.3c-.9-.6-1.9-.9-3-.9-1.1 0-1.7.4-1.7 1.2 0 .8.6 1.1 1.9 1.5 1.8.6 3.6 1.3 3.6 3.5 0 2.2-1.7 3.5-4.5 3.5-1.8 0-3.5-.4-4.8-1.2l1.1-2.4c1 .6 2.3 1 3.6 1 1.2 0 1.8-.4 1.8-1.2 0-.8-.7-1.1-2-1.5-1.8-.5-3.6-1.2-3.6-3.5z"/>
-          </svg>
+          <img src="data:image/png;base64,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" alt="PlayStation">
         </button>
-
-        <!-- Xbox -->
         <button type="button" class="plat-btn" data-platform="xbox" title="Xbox">
-          <svg viewBox="0 0 24 24" width="20" height="20" style="display:block; flex-shrink:0;">
-            <circle cx="12" cy="12" r="12" fill="#107C41"/>
-            <path fill="#FFFFFF" d="M5.8 4.6c2.2 2.2 4.4 4.5 6.2 6.7 1.8-2.2 4-4.5 6.2-6.7-1.8-1.5-3.8-2.3-6.2-2.3-2.4 0-4.4.8-6.2 2.3zm-1.8 2c1.7 2.1 4.2 5 5.8 6.9-2 1.9-4.8 4.9-6.3 6.9 1.4 1.3 3.2 2.1 5.3 2.1 2.2 0 4-.9 5.5-2.5-1.5-1.9-3.9-4.8-5.7-6.9 1.8-2.1 4.2-5 5.7-6.9-1.5-1.6-3.3-2.5-5.5-2.5-2.1 0-3.9.8-5.3 2.1zm14 2c-1.7 2.1-4.2 5-5.8 6.9 2 1.9 4.8 4.9 6.3 6.9 1.4-1.3 2.5-3.1 2.5-5.3 0-2.2-1.1-4-2.5-5.3-1.6-1.1-3.6-1.8-5.5-1.8-.7 0-1.4.1-2 .3 1.7 2.1 4.2 5 5.7 6.9-1.8 2.1-4.2 5-5.7 6.9 1.5 1.6 3.3 2.5 5.5 2.5 2.1 0 3.9-.8 5.3-2.1-1.4-1.3-3.2-2.1-5.3-2.1-2.2 0-4 .9-5.5 2.5 1.5 1.9 3.9 4.8 5.7 6.9z"/>
-          </svg>
+          <img src="data:image/png;base64,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" alt="Xbox">
         </button>
-
-        <!-- Nintendo -->
         <button type="button" class="plat-btn" data-platform="nintendo" title="Nintendo">
-          <svg viewBox="0 0 85 28" width="34" height="14" style="display:block; flex-shrink:0;">
-            <rect width="85" height="28" rx="14" fill="#E60012"/>
-            <text x="42.5" y="19.5" fill="#FFFFFF" font-family="Arial Black, sans-serif" font-weight="900" font-size="13" text-anchor="middle">Nintendo</text>
-          </svg>
+          <img src="data:image/png;base64,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" alt="Nintendo">
         </button>
-
-        <!-- SEGA -->
-        <button type="button" class="plat-btn" data-platform="sega" title="Sega">
-          <svg viewBox="0 0 42 16" width="30" height="12" style="display:block; flex-shrink:0;">
-            <rect width="42" height="16" rx="3" fill="#0060A8"/>
-            <text x="21" y="12" fill="#FFFFFF" font-family="Arial Black, sans-serif" font-weight="900" font-size="10" letter-spacing="0.5" text-anchor="middle">SEGA</text>
-          </svg>
+        <button type="button" class="plat-btn" data-platform="sega" title="SEGA">
+          <img src="data:image/png;base64,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" alt="SEGA">
         </button>
-
-        <!-- PC -->
         <button type="button" class="plat-btn" data-platform="pc" title="PC">
-          <svg viewBox="0 0 32 32" width="18" height="18" style="display:block; flex-shrink:0;">
-            <rect x="2" y="4" width="28" height="24" rx="6" fill="#2563EB"/>
-            <text x="16" y="20.5" fill="#FFFFFF" font-family="system-ui, sans-serif" font-weight="900" font-size="13" letter-spacing="0.5" text-anchor="middle">PC</text>
-          </svg>
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABACAYAAACa5WD/AAAEgUlEQVR4nO2cS2wbRRjH/+vdtR07jgvBIoFC1TROpJZWyqPQkgMFUVUCBFGRqAq9QDghTkg8ilC4VEKUAxxAXFoRBBKHClU8DqVUQiS0SiUSocYNtAmtrIqSPtI0sePYa+8uByuO7Z2116/xmn6/43o2mf3N5//OzFoLEMT/CaGSk4NDN/RqdaRRmDkaKMtZySfdiXLNKEW65YYk2Bwrwh1W/hBJLowVPwVHggSXjll1m1Y0SS4PM2+WooOoHKZoqubKYPkziCbJ1SHfI0UHJ3JEUzVXl2yfVNGcINGcyIim2KgNq16pojlBojlBojlBojlBojlBojkh1fofHHjCjeEXmwu2UTUgGtdx7ZaKqXAKJ35XMBZSoJUw4dzYJmJ3jxN9QRmb2kX4vQ40uwUsx3XMLWiYDqcwGlLwyzkFy3H+M9mai7aC6AD8HgF+j4Su9RKeH3AjFE7hzSMR/P2vWvDcjjYRb7/gxa6tTgiMLfcWj4AWj4iu+0UMPupCZEXHpz/E8MXJlRpdDRvbRsdDGyR8/ZYfDwRE0zaDO104PrwOj29jS2bhaxKwp9dZpV5ax7aiAaDV58B7+73Mz57a7sKHr/jQ5KzoFxPcqEt0zFxV8fTwAgBAENJCBzbLeGefF62+3LF/bKsTrT4H5iNa5tiDARGHh5qZVXzxHxVfnlrB+F9JXL+tQRKBe9c50BeUMbjThe1dck2vzYy6Z7SuAzeXNHw3nkA0ruPz11tyPncIwJYNEkZDSubYG3s9cEpGy8fG4hj+Kgp1bUyQSAKX5lRcmlNxbCyO3k4Zz+5w1ex6zKi76GzOXU4xj/u9a1J9TQL29BlFTcwkDZJZTM4mMTmbrKif5WCrjN62kT3ui8tr07GBzU6IjF5/9mOsqOR6YouKbvU5MLBFxsF9xhufpgPnw2uV3tFunIUoKR1nL/Cv0lKoi+jgfSIuHrnHUttfp5ScG+HdPmM231zSkWSnjm2wVXTkMx/RcOib5ZxjrMmc3gCPLGwrOhRO4cDhRVy5kbsynI8YrQb8AmRbhKA5tuieqiG9J3FLRSicwomJ9F4H6+Z2ec64JHdKAh7plvHbefvmdN0XLKVyejo9APkzj9ee8eDM9GJJG1E8sW10mLEU0/HTRMJwvD8o4/2XmplTv2x6O9PteGOL6CiVj4/HsLvHZcjl/bvc6O2UMPJzHGcvZC3B73KgPyjjuR0uPNwt12XB0pCiw9dVHByJ4KMhn2G/o3u9hA9e5l+xxWi46Fjl+/EE3h2JIq7YNJTzaFjRAPDt6Tj2HrqN0ZBieS4dXdFxclIp3rDKNGR0ZDN7VcWrnyxhU7uIJ3uc6A/K6GhLP8ryugXEEjquLWj480oKo1MKTv1Rn0dZmYSjn4TVjpmjAaGho6ORINGcINGcINGcINGcINGcINGcyIgu9z0URGFWvVJFc4JEcyJHNMVHdcn2SRXNCYNoqurqkO+RWdEkuzJY/ig6OGEqmqq6PMy8WZJJDwWKU6wwLUUHVXdhrPihNzlWQE3e5MjiTpRO326b8x+bFXdJjpFilAAAAABJRU5ErkJggg==" alt="PC">
         </button>
       </div>
 
@@ -420,7 +389,6 @@
   </div>
 </div>
 
-<!-- Modal coulissant pour les détails d'un jeu -->
 <div id="modalBackdrop" class="modal-backdrop">
   <div class="modal-card" id="modalCard">
     <div class="modal-handle-area" id="modalHandleArea">
@@ -493,7 +461,6 @@
   let selectedPlatforms = new Set();
   let debounceTimer;
 
-  // Clic On/Off icônes rapidement
   document.querySelectorAll('.plat-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const platKey = btn.getAttribute('data-platform');
@@ -642,7 +609,6 @@
     const infoLayout = document.createElement('div');
     infoLayout.className = 'info-layout';
 
-    // Fiche détaillée
     const gameSection = document.createElement('div');
     gameSection.className = 'year-section open';
     
@@ -670,7 +636,6 @@
     `;
     gameSection.querySelector('.year-header').addEventListener('click', () => gameSection.classList.toggle('open'));
 
-    // Actualités
     const newsSection = document.createElement('div');
     newsSection.className = 'year-section open';
     
