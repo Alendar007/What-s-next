@@ -189,12 +189,12 @@
     }
     .btn-toggle-filters:hover { border-color: var(--accent); }
 
-    /* Barre d'icônes adaptatives */
+    /* Barre d'icônes adaptatives sans aucune déformation */
     .platform-bar {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 10px;
       margin-top: 10px;
       flex-wrap: wrap;
     }
@@ -202,7 +202,7 @@
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
-      height: 38px;
+      height: 42px;
       padding: 0 10px;
       display: flex;
       align-items: center;
@@ -211,12 +211,12 @@
       transition: all 0.2s ease;
       flex-shrink: 0;
     }
+    /* Règle vitale pour empêcher les icônes de s'écraser */
     .plat-btn svg {
-      height: 26px;
-      width: auto;
-      max-width: 70px;
       display: block;
+      flex-shrink: 0;
     }
+    
     .plat-btn:hover {
       border-color: var(--accent);
       transform: translateY(-2px);
@@ -237,20 +237,10 @@
     .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
     /* Disposition Responsive Vue Infos */
-    .info-layout {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
+    .info-layout { display: flex; flex-direction: column; gap: 14px; }
     @media (min-width: 768px) {
-      .info-layout {
-        flex-direction: row;
-        align-items: flex-start;
-      }
-      .info-layout > .year-section {
-        flex: 1;
-        min-width: 0;
-      }
+      .info-layout { flex-direction: row; align-items: flex-start; }
+      .info-layout > .year-section { flex: 1; min-width: 0; }
     }
 
     .year-section { margin-bottom: 14px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card-bg); }
@@ -309,51 +299,21 @@
     .btn-link { background: var(--accent); color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; display: inline-block; }
 
     /* Animation Squelette */
-    @keyframes shimmer {
-      0% { background-position: -200px 0; }
-      100% { background-position: 200px 0; }
-    }
-    .skeleton {
-      background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%);
-      background-size: 400px 100%;
-      animation: shimmer 1.5s infinite;
-      border-radius: 4px;
-    }
-    .skeleton-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      height: 250px;
-      display: flex;
-      flex-direction: column;
-      padding: 8px;
-      gap: 8px;
-      box-sizing: border-box;
-    }
+    @keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: 200px 0; } }
+    .skeleton { background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%); background-size: 400px 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+    .skeleton-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; height: 250px; display: flex; flex-direction: column; padding: 8px; gap: 8px; box-sizing: border-box; }
     .skeleton-img { width: 100%; height: 160px; }
     .skeleton-text { height: 12px; width: 80%; }
     .skeleton-text-short { height: 10px; width: 40%; }
 
     .load-more-container { text-align: center; margin: 20px 0; }
-    .btn-load-more {
-      background: var(--card-bg); border: 1px solid var(--border); color: var(--text);
-      padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold;
-      transition: border-color 0.2s, background 0.2s;
-    }
+    .btn-load-more { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; transition: border-color 0.2s, background 0.2s; }
     .btn-load-more:hover { border-color: var(--accent); background: var(--accent); color: #fff; }
-
     .status { text-align: center; margin-top: 10px; color: var(--muted); font-size: 13px; }
 
     /* Mode Paysage Ultra-Compact */
     @media (orientation: landscape) and (max-height: 500px) {
-      .container {
-        padding: 4px 10px 4px 55px;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 8px;
-      }
-
+      .container { padding: 4px 10px 4px 55px; display: flex; flex-direction: row; align-items: center; gap: 8px; }
       h1, .site-subtitle { display: none; }
       .site-header { margin-bottom: 0; flex-shrink: 0; }
       .search-box { margin: 0; flex: 1; }
@@ -364,8 +324,8 @@
       .sort-control select { padding: 2px 4px; font-size: 11px; }
       .btn-toggle-filters { margin-top: 0; height: 26px; padding: 0 8px; }
       .platform-bar { margin-top: 0; gap: 4px; }
-      .plat-btn { height: 28px; padding: 0 6px; border-radius: 6px; }
-      .plat-btn svg { height: 18px; }
+      .plat-btn { height: 32px; padding: 0 8px; border-radius: 6px; }
+      /* Les SVGs se mettront à l'échelle grâce aux proportions fixes */
       .results-scroll-area { padding: 8px 10px 20px 55px; }
     }
   </style>
@@ -400,10 +360,10 @@
       <button id="toggleFiltersBtn" class="btn-toggle-filters" title="Filtres">⚙️ <span id="filtersText" style="display:none; font-size:12px;">Filtres</span></button>
     </div>
 
-    <!-- Barre d'icônes rapides constructeurs -->
+    <!-- Barre d'icônes avec dimensions fixes pour éviter la déformation -->
     <div id="platformBar" class="platform-bar">
       <button type="button" class="plat-btn" data-platform="playstation" title="PlayStation">
-        <svg viewBox="0 0 320 250">
+        <svg viewBox="0 0 320 250" width="34" height="26">
           <path fill="#F3C300" d="M127.5,189.2c-15.8,5.1-33.1,3.8-44.5-2.2c-14.2-7.5-17.5-20.3-7.5-28.7c7.4-6.2,20.8-8.2,35.8-5.8l17.7-18.7c-25.2-3.1-49,1.1-63.5,13.2c-20.9,17.5-14.8,42.8,13.6,56.2c19.1,9,45.4,8.9,71.2,1.2L127.5,189.2z"/>
           <path fill="#00A389" d="M228.3,165.7c-18.6,13.8-47.5,22.2-76.3,21.8l-12.7,13.4c33.3,1.9,67.6-6.8,89.5-23.1c11.6-8.6,17.6-18.7,17.6-28.7c0-2.3-0.3-4.6-0.9-6.9l-22.1,8.1C224.7,155.1,226.7,160.7,228.3,165.7z M128.8,145.7l-17.7,18.7c15.8,2.5,31.7,0.7,44.7-4.4l12.8-13.5C155.6,151.2,141.6,148.9,128.8,145.7z"/>
           <path fill="#0062AD" d="M268.5,123.3c-11.8-8.9-29.4-12.7-48.4-11l-22.1,8.1c13.7,0.4,26.1,3.3,34.4,9.6c10.4,7.9,8.5,20.4-4.1,25.7c-0.3,0.1-0.6,0.3-0.9,0.4l18.3,13.8c1.3-0.6,2.6-1.3,3.8-2.1C270.4,153.8,276.5,138.8,268.5,123.3z"/>
@@ -411,33 +371,31 @@
         </svg>
       </button>
       <button type="button" class="plat-btn" data-platform="xbox" title="Xbox">
-        <svg viewBox="0 0 100 100">
-          <path fill="#107C41" d="M 50,2 A 48,48 0 0,0 25.8,9.1 C 28.5,12 37.8,21.5 50,34.8 C 62.2,21.5 71.5,12 74.2,9.1 A 48,48 0 0,0 50,2 Z M 16.8,13.6 A 48,48 0 0,0 2,50 A 48,48 0 0,0 16.7,86.2 C 21.8,80.1 36.3,61 46.2,47.8 C 31,31 19.8,17.2 16.8,13.6 Z M 83.2,13.6 C 80.2,17.2 69,31 53.8,47.8 C 63.7,61 78.2,80.1 83.3,86.2 A 48,48 0 0,0 98,50 A 48,48 0 0,0 83.2,13.6 Z M 50,52.8 C 39.5,66.8 24.3,86.8 19.3,93.2 A 48,48 0 0,0 50,98 A 48,48 0 0,0 80.7,93.2 C 75.7,86.8 60.5,66.8 50,52.8 Z"/>
+        <svg viewBox="0 0 512 512" width="28" height="28">
+          <path fill="#107C41" d="M256 0C114.6 0 0 114.6 0 256s114.6 256 256 256 256-114.6 256-256S397.4 0 256 0zm-41 73.1c32.7-3.7 73 1.9 92.5 9.7-18.7 18-40.4 44.5-56.9 74.3-17-30.8-37.3-59.5-55.5-78.5 7-1.9 14.2-4.1 19.9-5.5zm-119 50.7c15.2-12 31.8-21 48-26.6-2.5 13.5-3.3 35.8 4.7 63.2C118.8 199 87 230 75 240.2c-5.5-37 1.2-76 21-116.4zM71 303.4c21.8 15.6 51 32 86.8 45 42 15 78.4 15.4 97 15.4s55.5-.3 97-15.4c35.8-13 65-29.4 86.8-45 13.5 35 15.6 74.7 2 110.6-28.5 75-104.5 125-184.6 125-81.2 0-156.4-50-184.8-125-14.7-37-12-78.2 2-110.6zm295.6-63.2c-12-10.2-43.8-41.2-73.7-79.8 8-27.4 7.2-49.7 4.7-63.2 16.2 5.5 32.8 14.6 48 26.6 19.8 40.4 26.5 79.4 21 116.4z"/>
         </svg>
       </button>
       <button type="button" class="plat-btn" data-platform="nintendo" title="Nintendo">
-        <svg viewBox="0 0 100 100">
-          <!-- Sceau d'or dentelé -->
-          <polygon fill="#8C7321" points="50,2 55.3,9.8 62.4,3.6 65.5,12.6 74,8.4 74.7,17.9 83.9,16.1 82.1,24.5 91.6,26 87.3,33.3 96.4,37.6 89.8,42.9 98,50 89.8,57.1 96.4,62.4 87.3,66.7 91.6,74 82.1,75.5 83.9,83.9 74.7,82.1 74,91.6 65.5,87.4 62.4,96.4 55.3,90.2 50,98 44.7,90.2 37.6,96.4 34.5,87.4 26,91.6 25.3,82.1 16.1,83.9 17.9,75.5 8.4,74 12.7,66.7 3.6,62.4 10.2,57.1 2,50 10.2,42.9 3.6,37.6 12.7,33.3 8.4,26 17.9,24.5 16.1,16.1 25.3,17.9 26,8.4 34.5,12.6 37.6,3.6 44.7,9.8"/>
-          <circle cx="50" cy="50" r="38" fill="#FFFFFF"/>
-          <circle cx="50" cy="50" r="37" fill="none" stroke="#8C7321" stroke-width="1.2"/>
-          <circle cx="50" cy="50" r="34" fill="none" stroke="#8C7321" stroke-width="0.6"/>
-          <text x="50" y="27" fill="#8C7321" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="8.5" text-anchor="middle">Original</text>
-          <rect x="22" y="33" width="56" height="20" rx="10" fill="none" stroke="#8C7321" stroke-width="2.5"/>
-          <text x="50" y="47.5" fill="#8C7321" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="9" text-anchor="middle">Nintendo</text>
-          <text x="50" y="64" fill="#8C7321" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="8" text-anchor="middle">Seal of</text>
-          <text x="50" y="73" fill="#8C7321" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="8" text-anchor="middle">Quality</text>
-          <text x="82" y="81" fill="#8C7321" font-family="sans-serif" font-weight="bold" font-size="5">TM</text>
+        <svg viewBox="0 0 100 100" width="30" height="30">
+          <polygon fill="#B38B22" points="50,2 55,9 62,4 66,12 74,8 76,17 84,16 83,25 92,26 88,34 96,38 91,45 98,50 91,55 96,62 88,66 92,74 83,75 84,84 76,83 74,92 66,88 62,96 55,91 50,98 45,91 38,96 34,88 26,92 24,83 16,84 17,75 8,74 12,66 4,62 9,55 2,50 9,45 4,38 12,34 8,26 17,25 16,16 24,17 26,8 34,12 38,4 45,9"/>
+          <circle cx="50" cy="50" r="37" fill="#FFFFFF"/>
+          <circle cx="50" cy="50" r="35" fill="none" stroke="#B38B22" stroke-width="1.5"/>
+          <circle cx="50" cy="50" r="31" fill="none" stroke="#B38B22" stroke-width="0.8"/>
+          <text x="50" y="28" fill="#B38B22" font-family="'Arial Black', sans-serif" font-weight="900" font-size="9" text-anchor="middle">Original</text>
+          <rect x="22" y="34" width="56" height="18" rx="9" fill="none" stroke="#B38B22" stroke-width="2"/>
+          <text x="50" y="47.5" fill="#B38B22" font-family="'Arial Black', sans-serif" font-weight="900" font-size="9" text-anchor="middle">Nintendo</text>
+          <text x="50" y="65" fill="#B38B22" font-family="'Arial Black', sans-serif" font-weight="900" font-size="8" text-anchor="middle">Seal of</text>
+          <text x="50" y="74" fill="#B38B22" font-family="'Arial Black', sans-serif" font-weight="900" font-size="8" text-anchor="middle">Quality</text>
         </svg>
       </button>
       <button type="button" class="plat-btn" data-platform="sega" title="Sega">
-        <svg viewBox="0 0 120 40">
+        <svg viewBox="0 0 120 40" width="60" height="20">
           <rect width="120" height="40" rx="6" fill="#0060A8"/>
           <text x="60" y="28" fill="#FFFFFF" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="22" letter-spacing="1.5" text-anchor="middle">SEGA</text>
         </svg>
       </button>
       <button type="button" class="plat-btn" data-platform="pc" title="PC">
-        <svg viewBox="0 0 32 32">
+        <svg viewBox="0 0 32 32" width="28" height="28">
           <rect x="2" y="4" width="28" height="24" rx="6" fill="#2563EB"/>
           <text x="16" y="20.5" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="13" letter-spacing="0.5" text-anchor="middle">PC</text>
         </svg>
