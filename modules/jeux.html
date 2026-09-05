@@ -347,7 +347,6 @@
         </select>
       </div>
 
-      <!-- Logos Constructeurs PNG Transparents -->
       <div id="platformBar" class="platform-bar">
         <button type="button" class="plat-btn" data-platform="playstation" title="PlayStation">
           <img src="https://upload.wikimedia.org/wikipedia/commons/0/00/PlayStation_logo.svg" alt="PlayStation">
@@ -362,11 +361,11 @@
         </button>
 
         <button type="button" class="plat-btn" data-platform="sega" title="Sega">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Sega_logo.svg" alt="SEGA">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Sega-logo.svg" alt="SEGA">
         </button>
 
         <button type="button" class="plat-btn" data-platform="pc" title="PC">
-          <img src="https://cdn.simpleicons.org/steam/f8fafc" alt="PC">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/Windows_logo_-_2021.svg" alt="PC">
         </button>
       </div>
 
@@ -462,7 +461,6 @@
   let selectedPlatforms = new Set();
   let debounceTimer;
 
-  // Filtrage strict à 6 mois (180 jours)
   function isRecentNews(dateStr) {
     if (!dateStr) return false;
     const newsDate = new Date(dateStr).getTime();
@@ -829,7 +827,7 @@
     
     const year = item.released ? item.released.split('-')[0] : 'N/A';
     modalMeta.innerText = `📅 Sortie : ${year}`;
-    modalGenres.innerText = item.genres ? item.genres.map(g => g.map(g => g.name)).join(' • ') : '';
+    modalGenres.innerText = item.genres ? item.genres.map(g => g.name).join(' • ') : '';
     modalDesc.innerText = item.description || 'Aucune description disponible.';
 
     modalLinks.innerHTML = '';
