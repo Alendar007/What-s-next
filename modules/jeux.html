@@ -1,161 +1,914 @@
-<style>
-  /* --- Style Global du Dashboard (Harmonisation) --- */
-  .dashboard-container {
-    display: flex;
-    gap: 20px;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  }
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>What's next ? - Jeux Vidéo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <style>
+    :root[data-theme="dark"] {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --accent: #6366f1;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+    :root[data-theme="light"] {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --accent: #4f46e5;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
 
-  /* --- Conteneurs communs (Fiche et News de même taille) --- */
-  .dashboard-card {
-    flex: 1;
-    height: 480px; /* Hauteur fixe identique pour les deux blocs */
-    background: #1e1e2e;
-    color: #cdd6f4;
-    border-radius: 12px;
-    padding: 20px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: container;
-    flex-direction: column;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    overflow: hidden; /* Empêche les débordements globaux */
-  }
+    .results-scroll-area::-webkit-scrollbar { width: 5px; }
+    .results-scroll-area::-webkit-scrollbar-track { background: transparent; }
+    .results-scroll-area::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; transition: background 0.2s; }
+    .results-scroll-area:hover::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); }
 
-  .dashboard-card h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 1.2rem;
-    color: #89b4fa;
-    border-bottom: 2px solid #313244;
-    padding-bottom: 8px;
-  }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.3s ease, color 0.3s ease;
+      overflow: hidden;
+    }
+    
+    .container { 
+      max-width: none; 
+      margin: 0 auto; 
+      width: 100%; 
+      box-sizing: border-box;
+      padding: 15px 15px 10px 55px;
+      flex-shrink: 0;
+      background: var(--bg);
+      z-index: 10;
+    }
 
-  /* --- Contenu interne scrollable proprement (sans barre disgracieuse) --- */
-  .card-content {
-    overflow-y: auto;
-    flex-grow: 1;
-    padding-right: 4px;
-  }
+    .results-scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 15px 40px 55px;
+      box-sizing: border-box;
+    }
+    
+    .site-header { 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 12px; 
+    }
+    h1 { color: var(--text); font-size: 24px; margin: 0; }
+    
+    .site-subtitle {
+      font-size: 11px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .type-switch {
+      display: flex;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px;
+    }
+    .type-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .type-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    
+    .search-box { 
+      display: flex; 
+      gap: 6px; 
+      position: relative; 
+      margin: 0 auto 15px auto; 
+      width: 100%;
+      max-width: 100%;
+    }
+    input { 
+      padding: 10px 14px; 
+      border-radius: 8px; 
+      border: 1px solid var(--border); 
+      background: var(--card-bg); 
+      color: var(--text); 
+      font-size: 14px; 
+      outline: none; 
+      box-sizing: border-box;
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .btn-reset {
+      background: transparent; 
+      border: 1px solid var(--border); 
+      color: var(--muted); 
+      padding: 0 12px;
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-size: 14px; 
+      display: none; 
+      align-items: center; 
+      justify-content: center;
+      flex-shrink: 0;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .btn-reset:hover { color: var(--text); border-color: var(--accent); }
+    
+    .autocomplete-list {
+      position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px;
+      background: var(--card-bg); border: 1px solid var(--accent); border-radius: 8px;
+      max-height: 220px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    .autocomplete-item { padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text); }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover { background: var(--accent); color: #fff; }
 
-  /* Masquer la barre de scroll pour un design épuré (Chrome, Safari, Opera) */
-  .card-content::-webkit-scrollbar {
-    width: 4px;
-  }
-  .card-content::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .card-content::-webkit-scrollbar-thumb {
-    background: #45475a;
-    border-radius: 4px;
-  }
+    .controls-bar { margin: 0 auto 15px auto; max-width: 100%; display: none; }
+    
+    /* Barre de contrôle unifiée */
+    .sort-bar { 
+      display: flex; 
+      gap: 10px; 
+      background: var(--card-bg); 
+      padding: 8px 12px; 
+      border-radius: 8px; 
+      border: 1px solid var(--border); 
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .sort-control { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 4px; 
+      flex: 1;
+      min-width: 130px;
+    }
+    .sort-control label { font-size: 10px; font-weight: bold; color: var(--muted); text-transform: uppercase; }
+    .sort-control select { padding: 6px 8px; font-size: 12px; width: 100%; background: var(--card-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; outline: none; }
+    
+    .btn-toggle-filters {
+      background: var(--bg); 
+      border: 1px solid var(--border); 
+      color: var(--text); 
+      padding: 0 12px;
+      height: 34px;
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-size: 13px; 
+      font-weight: bold; 
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-toggle-filters:hover { border-color: var(--accent); }
 
-  /* --- Styles spécifiques Fiche Détaillée --- */
-  .game-header {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 15px;
-  }
-  .game-poster {
-    width: 100px;
-    height: 140px;
-    object-fit: cover;
-    border-radius: 8px;
-    background: #313244;
-  }
-  .game-meta-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    font-size: 0.9rem;
-  }
-  .game-meta-list li {
-    margin-bottom: 6px;
-  }
-  .game-meta-list strong {
-    color: #fab387;
-  }
-  .game-description {
-    font-size: 0.88rem;
-    line-height: 1.5;
-    color: #bac2de;
-    margin-top: 10px;
-  }
+    /* Barre d'icônes intégrée */
+    .platform-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .plat-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      height: 34px;
+      padding: 0 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .plat-btn img {
+      display: block;
+      height: 20px;
+      width: auto;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+    .plat-btn:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .plat-btn.active {
+      background: var(--card-bg);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
 
-  /* --- Styles spécifiques News --- */
-  .news-item {
-    padding: 10px 0;
-    border-bottom: 1px solid #313244;
-  }
-  .news-item:last-child {
-    border-bottom: none;
-  }
-  .news-date {
-    font-size: 0.75rem;
-    color: #6c7086;
-  }
-  .news-title {
-    font-size: 0.9rem;
-    color: #89b4fa;
-    text-decoration: none;
-    display: block;
-    margin: 4px 0;
-  }
-  .news-title:hover {
-    text-decoration: underline;
-  }
-</style>
+    .filters-wrapper { background: var(--card-bg); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 12px; display: none; margin-top: -1px; }
+    .filters-wrapper.open { display: block; }
+    .filter-section { margin-bottom: 12px; }
+    .filter-section:last-child { margin-bottom: 0; }
+    .filter-title { font-size: 11px; font-weight: bold; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
+    .filter-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { background: var(--bg); border: 1px solid var(--border); padding: 4px 10px; border-radius: 16px; font-size: 12px; cursor: pointer; color: var(--text); display: inline-flex; align-items: center; gap: 4px; }
+    .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-<div class="dashboard-container">
-  
-  <!-- Bloc 1 : Fiche Détaillée -->
-  <div class="dashboard-card">
-    <h3>Fiche de Jeu</h3>
-    <div class="card-content">
-      <div class="game-header">
-        <!-- Remplacer par l'image du jeu -->
-        <div class="game-poster" style="display:flex; align-items:center; justify-content:center; font-size:10px; color:#6c7086;">Affiche</div>
-        <div>
-          <h4 style="margin: 0 0 8px 0; font-size: 1rem; color: #f5e0dc;">Clair Obscur: Expédition 33</h4>
-          <ul class="game-meta-list">
-            <li><strong>Développeur :</strong> Sandfall Interactive</li>
-            <li><strong>Éditeur :</strong> Kepler Interactive</li>
-            <li><strong>Sortie :</strong> 2025</li>
-            <li><strong>PEGI :</strong> 18+ (Recommandé)</li>
-            <li><strong>Genre :</strong> RPG / Tour par tour</li>
-          </ul>
+    /* Disposition Responsive Vue Infos */
+    .info-layout { display: flex; flex-direction: column; gap: 14px; }
+    @media (min-width: 768px) {
+      .info-layout { flex-direction: row; align-items: flex-start; }
+      .info-layout > .year-section { flex: 1; min-width: 0; }
+    }
+
+    .year-section { margin-bottom: 14px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card-bg); }
+    .info-layout .year-section { margin-bottom: 0; }
+    .year-header { padding: 10px 14px; background: var(--card-bg); font-weight: bold; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; color: var(--text); }
+    .year-header:hover { opacity: 0.9; }
+    .year-header .count { font-size: 12px; color: var(--muted); font-weight: normal; }
+    .year-content { padding: 12px; display: none; border-top: 1px solid var(--border); }
+    
+    .year-section.open .year-content { display: block; }
+    .year-section.open .year-content.grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+    .year-section.open .arrow { transform: rotate(180deg); }
+    .arrow { transition: transform 0.2s ease; font-size: 11px; display: inline-block; }
+
+    .card { background: var(--card-bg); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--border); cursor: pointer; transition: transform 0.2s, border-color 0.2s; }
+    .card:hover { transform: translateY(-3px); border-color: var(--accent); }
+    .card-img-wrapper { width: 100%; height: 200px; overflow: hidden; background: var(--border); }
+    .card-img-wrapper img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .card-body { padding: 8px; display: flex; flex-direction: column; flex: 1; }
+    .card-title { font-weight: bold; font-size: 12px; margin-bottom: 4px; color: var(--text); }
+    .card-genres { font-size: 10px; color: var(--accent); margin-bottom: 6px; }
+    .card-meta { font-size: 10px; color: var(--muted); margin-top: auto; }
+
+    /* Modal coulissant pour les détails */
+    .modal-backdrop { 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+      background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); 
+      display: flex; justify-content: center; align-items: flex-end; 
+      z-index: 200; padding: 0; box-sizing: border-box;
+      opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .modal-backdrop.show { opacity: 1; visibility: visible; }
+    
+    .modal-card { 
+      background: var(--card-bg); border: 1px solid var(--border); border-bottom: none;
+      border-radius: 16px 16px 0 0; max-width: 600px; width: 100%; max-height: 85vh; 
+      position: relative; display: flex; flex-direction: column; box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+      transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .modal-backdrop.show .modal-card { transform: translateY(0); }
+    
+    @media (min-width: 600px) {
+      .modal-backdrop { align-items: center; padding: 16px; }
+      .modal-card { border-radius: 12px; border-bottom: 1px solid var(--border); max-height: 80vh; }
+    }
+
+    .modal-handle-area { width: 100%; padding: 12px 0; display: flex; justify-content: center; cursor: grab; position: sticky; top: 0; background: var(--card-bg); z-index: 10; border-radius: 16px 16px 0 0; touch-action: none; }
+    .drag-handle { width: 40px; height: 5px; background: var(--muted); border-radius: 4px; }
+    
+    .modal-scrollable { overflow-y: auto; padding: 0 16px 20px 16px; display: flex; flex-direction: column; gap: 14px; }
+    .modal-cover { width: 130px; height: 170px; border-radius: 8px; object-fit: cover; align-self: flex-start; border: 1px solid var(--border); }
+    .modal-info { flex: 1; }
+    .modal-title { font-size: 16px; font-weight: bold; margin-bottom: 4px; color: var(--text); }
+    .modal-description { font-size: 11px; line-height: 1.4; color: var(--muted); margin: 10px 0; max-height: 120px; overflow-y: auto; }
+    .modal-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .btn-link { background: var(--accent); color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; display: inline-block; }
+
+    /* Animation Squelette */
+    @keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: 200px 0; } }
+    .skeleton { background: linear-gradient(90deg, var(--card-bg) 25%, var(--border) 50%, var(--card-bg) 75%); background-size: 400px 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+    .skeleton-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; height: 250px; display: flex; flex-direction: column; padding: 8px; gap: 8px; box-sizing: border-box; }
+    .skeleton-img { width: 100%; height: 160px; }
+    .skeleton-text { height: 12px; width: 80%; }
+    .skeleton-text-short { height: 10px; width: 40%; }
+
+    .load-more-container { text-align: center; margin: 20px 0; }
+    .btn-load-more { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: bold; transition: border-color 0.2s, background 0.2s; }
+    .btn-load-more:hover { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .status { text-align: center; margin-top: 10px; color: var(--muted); font-size: 13px; }
+
+    /* Mode Paysage Ultra-Compact */
+    @media (orientation: landscape) and (max-height: 500px) {
+      .container { padding: 4px 10px 4px 55px; display: flex; flex-direction: row; align-items: center; gap: 8px; }
+      h1, .site-subtitle { display: none; }
+      .site-header { margin-bottom: 0; flex-shrink: 0; }
+      .search-box { margin: 0; flex: 1; }
+      input { padding: 4px 10px; height: 32px; }
+      .controls-bar { margin: 0; flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
+      .sort-bar { padding: 4px 8px; height: auto; box-sizing: border-box; }
+      .sort-control label { display: none; }
+      .sort-control select { padding: 2px 4px; font-size: 11px; }
+      .btn-toggle-filters { height: 26px; padding: 0 8px; }
+      .plat-btn { height: 28px; padding: 0 6px; }
+      .results-scroll-area { padding: 8px 10px 20px 55px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="site-header">
+    <h1>What's next ?</h1>
+    <div class="site-subtitle">Jeux vidéo</div>
+    <div class="type-switch">
+      <button type="button" class="type-btn active" data-mode="INFO">Infos</button>
+      <button type="button" class="type-btn" data-mode="SIMILAR">Similaires</button>
+    </div>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Rechercher un jeu (ex: Mario, Banjo...)" autocomplete="off">
+    <button id="resetBtn" class="btn-reset" title="Réinitialiser">✕</button>
+    <div id="autocompleteList" class="autocomplete-list"></div>
+  </div>
+
+  <div id="controlsBar" class="controls-bar">
+    <div class="sort-bar">
+      <div class="sort-control">
+        <label for="sortMode">Trier par :</label>
+        <select id="sortMode">
+          <option value="YEAR_DESC">📅 Année (récent ➔ ancien)</option>
+          <option value="NAME_ASC">🔤 Nom (A ➔ Z)</option>
+        </select>
+      </div>
+
+      <!-- Barre de plateformes avec SVGs inline robustes et garantis -->
+      <div id="platformBar" class="platform-bar">
+        
+        <!-- PlayStation -->
+        <button type="button" class="plat-btn" data-platform="playstation" title="PlayStation">
+          <svg viewBox="0 0 32 24" width="24" height="18" style="display:block; flex-shrink:0;">
+            <path fill="#DF0024" d="M3 2v18h3.5v-6.5h2.5c2.2 0 3.8-1 3.8-3.2 0-2.1-1.6-3.1-3.8-3.1H3zm3.5 3.2h1.8c.8 0 1.4.3 1.4 1.3 0 1-.6 1.3-1.4 1.3H6.5V5.2z"/>
+            <path fill="#003087" d="M14.5 10.2c0-2.2 1.8-3.4 4.5-3.4 1.6 0 3 .4 4.1 1.1l-1 2.3c-.9-.6-1.9-.9-3-.9-1.1 0-1.7.4-1.7 1.2 0 .8.6 1.1 1.9 1.5 1.8.6 3.6 1.3 3.6 3.5 0 2.2-1.7 3.5-4.5 3.5-1.8 0-3.5-.4-4.8-1.2l1.1-2.4c1 .6 2.3 1 3.6 1 1.2 0 1.8-.4 1.8-1.2 0-.8-.7-1.1-2-1.5-1.8-.5-3.6-1.2-3.6-3.5z"/>
+          </svg>
+        </button>
+
+        <!-- Xbox -->
+        <button type="button" class="plat-btn" data-platform="xbox" title="Xbox">
+          <svg viewBox="0 0 24 24" width="20" height="20" style="display:block; flex-shrink:0;">
+            <circle cx="12" cy="12" r="12" fill="#107C41"/>
+            <path fill="#FFFFFF" d="M5.8 4.6c2.2 2.2 4.4 4.5 6.2 6.7 1.8-2.2 4-4.5 6.2-6.7-1.8-1.5-3.8-2.3-6.2-2.3-2.4 0-4.4.8-6.2 2.3zm-1.8 2c1.7 2.1 4.2 5 5.8 6.9-2 1.9-4.8 4.9-6.3 6.9 1.4 1.3 3.2 2.1 5.3 2.1 2.2 0 4-.9 5.5-2.5-1.5-1.9-3.9-4.8-5.7-6.9 1.8-2.1 4.2-5 5.7-6.9-1.5-1.6-3.3-2.5-5.5-2.5-2.1 0-3.9.8-5.3 2.1zm14 2c-1.7 2.1-4.2 5-5.8 6.9 2 1.9 4.8 4.9 6.3 6.9 1.4-1.3 2.5-3.1 2.5-5.3 0-2.2-1.1-4-2.5-5.3-1.6-1.1-3.6-1.8-5.5-1.8-.7 0-1.4.1-2 .3 1.7 2.1 4.2 5 5.7 6.9-1.8 2.1-4.2 5-5.7 6.9 1.5 1.6 3.3 2.5 5.5 2.5 2.1 0 3.9-.8 5.3-2.1-1.4-1.3-3.2-2.1-5.3-2.1-2.2 0-4 .9-5.5 2.5 1.5 1.9 3.9 4.8 5.7 6.9z"/>
+          </svg>
+        </button>
+
+        <!-- Nintendo -->
+        <button type="button" class="plat-btn" data-platform="nintendo" title="Nintendo">
+          <svg viewBox="0 0 85 28" width="34" height="14" style="display:block; flex-shrink:0;">
+            <rect width="85" height="28" rx="14" fill="#E60012"/>
+            <text x="42.5" y="19.5" fill="#FFFFFF" font-family="Arial Black, sans-serif" font-weight="900" font-size="13" text-anchor="middle">Nintendo</text>
+          </svg>
+        </button>
+
+        <!-- SEGA -->
+        <button type="button" class="plat-btn" data-platform="sega" title="Sega">
+          <svg viewBox="0 0 42 16" width="30" height="12" style="display:block; flex-shrink:0;">
+            <rect width="42" height="16" rx="3" fill="#0060A8"/>
+            <text x="21" y="12" fill="#FFFFFF" font-family="Arial Black, sans-serif" font-weight="900" font-size="10" letter-spacing="0.5" text-anchor="middle">SEGA</text>
+          </svg>
+        </button>
+
+        <!-- PC -->
+        <button type="button" class="plat-btn" data-platform="pc" title="PC">
+          <svg viewBox="0 0 32 32" width="18" height="18" style="display:block; flex-shrink:0;">
+            <rect x="2" y="4" width="28" height="24" rx="6" fill="#2563EB"/>
+            <text x="16" y="20.5" fill="#FFFFFF" font-family="system-ui, sans-serif" font-weight="900" font-size="13" letter-spacing="0.5" text-anchor="middle">PC</text>
+          </svg>
+        </button>
+      </div>
+
+      <button id="toggleFiltersBtn" class="btn-toggle-filters" title="Filtres">⚙️ <span id="filtersText" style="display:none; font-size:12px;">Filtres</span></button>
+    </div>
+
+    <div id="filtersWrapper" class="filters-wrapper">
+      <div class="filter-section">
+        <div class="filter-title">Genres :</div>
+        <div id="genreTags" class="filter-tags"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="results-scroll-area">
+  <div id="status" class="status"></div>
+  <div id="resultsContainer"></div>
+  <div id="loadMoreContainer" class="load-more-container" style="display:none;">
+    <button id="btnLoadMore" class="btn-load-more">Charger plus (+20)</button>
+  </div>
+</div>
+
+<!-- Modal coulissant pour les détails d'un jeu -->
+<div id="modalBackdrop" class="modal-backdrop">
+  <div class="modal-card" id="modalCard">
+    <div class="modal-handle-area" id="modalHandleArea">
+      <div class="drag-handle"></div>
+    </div>
+    <div class="modal-scrollable">
+      <div style="display:flex; gap:14px; flex-wrap:wrap;">
+        <img id="modalImg" class="modal-cover" src="" alt="Cover">
+        <div class="modal-info">
+          <div id="modalTitle" class="modal-title"></div>
+          <div id="modalMeta" style="font-size: 11px; color: var(--muted);"></div>
+          <div id="modalGenres" style="font-size: 10px; color: var(--accent); margin-top: 4px;"></div>
+          <div id="modalDesc" class="modal-description"></div>
+          <div id="modalLinks" class="modal-links"></div>
         </div>
       </div>
-      <div class="game-description">
-        Un RPG au tour par tour teinté de mécaniques en temps réel, propulsé par l'Unreal Engine 5. Plonge dans un univers sombre et onirique où une mystérieuse Paintresse se réveille chaque année pour effacer de l'âge de vie correspondant tous les habitants. Une expédition de la dernière chance s'élance pour briser ce cycle tragique.
+      <div id="modalNewsSection" style="margin-top:10px; border-top: 1px solid var(--border); padding-top:10px;">
+        <div style="font-size:12px; font-weight:bold; color:var(--text); margin-bottom:8px;">Actualités récentes :</div>
+        <div id="modalNewsContainer"></div>
       </div>
     </div>
   </div>
-
-  <!-- Bloc 2 : Flux de News -->
-  <div class="dashboard-card">
-    <h3>Dernières Actualités</h3>
-    <div class="card-content">
-      <div class="news-item">
-        <span class="news-date">Il y a 2 heures</span>
-        <a href="#" class="news-title">Nouvelle bande-annonce narrative dévoilée pour le projet</a>
-      </div>
-      <div class="news-item">
-        <span class="news-date">Hier</span>
-        <a href="#" class="news-title">Le point sur les performances techniques et l'optimisation PC</a>
-      </div>
-      <div class="news-item">
-        <span class="news-date">Il y a 3 jours</span>
-        <a href="#" class="news-title">Interview exclusive des développeurs de Sandfall Interactive</a>
-      </div>
-      <div class="news-item">
-        <span class="news-date">Il y a 5 jours</span>
-        <a href="#" class="news-title">Aperçu des mécaniques de combat au tour par tour dynamique</a>
-      </div>
-    </div>
-  </div>
-
 </div>
+
+<script>
+  window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'set-theme') {
+      document.documentElement.setAttribute('data-theme', event.data.theme);
+    }
+  });
+
+  const searchInput = document.getElementById('searchInput');
+  const typeButtons = document.querySelectorAll('.type-btn');
+  let currentMode = 'INFO';
+  let currentGame = null;
+
+  typeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      typeButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentMode = btn.getAttribute('data-mode');
+      if (currentGame) processSelection();
+    });
+  });
+
+  const resetBtn = document.getElementById('resetBtn');
+  const autocompleteList = document.getElementById('autocompleteList');
+  const controlsBar = document.getElementById('controlsBar');
+  const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
+  const filtersText = document.getElementById('filtersText');
+  const filtersWrapper = document.getElementById('filtersWrapper');
+  const sortMode = document.getElementById('sortMode');
+  const resultsContainer = document.getElementById('resultsContainer');
+  const loadMoreContainer = document.getElementById('loadMoreContainer');
+  const btnLoadMore = document.getElementById('btnLoadMore');
+  const status = document.getElementById('status');
+
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const modalImg = document.getElementById('modalImg');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalMeta = document.getElementById('modalMeta');
+  const modalGenres = document.getElementById('modalGenres');
+  const modalDesc = document.getElementById('modalDesc');
+  const modalLinks = document.getElementById('modalLinks');
+  const modalNewsContainer = document.getElementById('modalNewsContainer');
+
+  let rawDataList = [];
+  let visibleCount = 20;
+  let selectedGenres = new Set();
+  let selectedPlatforms = new Set();
+  let debounceTimer;
+
+  // Clic On/Off icônes rapidement
+  document.querySelectorAll('.plat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const platKey = btn.getAttribute('data-platform');
+      if (selectedPlatforms.has(platKey)) {
+        selectedPlatforms.delete(platKey);
+        btn.classList.remove('active');
+      } else {
+        selectedPlatforms.add(platKey);
+        btn.classList.add('active');
+      }
+      visibleCount = 20;
+      renderResults();
+    });
+  });
+
+  resetBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    currentGame = null;
+    resultsContainer.innerHTML = '';
+    loadMoreContainer.style.display = 'none';
+    controlsBar.style.display = 'none';
+    autocompleteList.style.display = 'none';
+    status.innerText = '';
+    resetBtn.style.display = 'none';
+  });
+
+  function showSkeletons(count = 6) {
+    resultsContainer.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.style.display = 'grid';
+    grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(140px, 1fr))';
+    grid.style.gap = '12px';
+
+    for (let i = 0; i < count; i++) {
+      grid.innerHTML += `
+        <div class="skeleton-card">
+          <div class="skeleton skeleton-img"></div>
+          <div class="skeleton skeleton-text"></div>
+          <div class="skeleton skeleton-text-short"></div>
+        </div>
+      `;
+    }
+    resultsContainer.appendChild(grid);
+  }
+
+  searchInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const query = searchInput.value.trim();
+    if (query.length < 2) {
+      autocompleteList.style.display = 'none';
+      if (query.length === 0) resetBtn.style.display = 'none';
+      return;
+    }
+    resetBtn.style.display = 'flex';
+    
+    debounceTimer = setTimeout(async () => {
+      try {
+        const url = `/api/games?search=${encodeURIComponent(query)}`;
+        const res = await fetch(url);
+        
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `Erreur HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        const items = data.results || [];
+        
+        autocompleteList.innerHTML = '';
+        if (items.length === 0) {
+          autocompleteList.style.display = 'none';
+          return;
+        }
+
+        items.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'autocomplete-item';
+          const year = item.released ? item.released.split('-')[0] : 'N/A';
+          div.innerHTML = `<span>${item.name}</span> <span style="font-size:11px; color:var(--muted);">${year}</span>`;
+          div.addEventListener('click', () => {
+            searchInput.value = item.name;
+            autocompleteList.style.display = 'none';
+            currentGame = item;
+            processSelection();
+          });
+          autocompleteList.appendChild(div);
+        });
+        autocompleteList.style.display = 'block';
+      } catch(e) {
+        console.error(e);
+        status.innerText = "Erreur : " + e.message;
+      }
+    }, 300);
+  });
+
+  async function processSelection() {
+    resetBtn.style.display = 'flex';
+    visibleCount = 20;
+
+    if (currentMode === 'INFO') {
+      status.innerText = '';
+      showSkeletons(2);
+      loadMoreContainer.style.display = 'none';
+      controlsBar.style.display = 'none';
+
+      try {
+        const newsRes = await fetch(`/api/games?news=true&name=${encodeURIComponent(currentGame.name)}`);
+        const newsData = await newsRes.json();
+        const newsList = newsData.results || [];
+
+        renderInfoView(currentGame, newsList);
+      } catch (e) {
+        console.error(e);
+        renderInfoView(currentGame, []);
+      }
+    } else {
+      status.innerText = '';
+      showSkeletons(6);
+      loadMoreContainer.style.display = 'none';
+      controlsBar.style.display = 'block';
+
+      try {
+        const url = `/api/games?id=${currentGame.id}&similar=true`;
+        const res = await fetch(url);
+        
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `Erreur HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        rawDataList = data.results || [];
+
+        buildFilters();
+        renderResults();
+      } catch (e) {
+        console.error(e);
+        status.innerText = "Erreur : " + e.message;
+      }
+    }
+  }
+
+  function renderInfoView(game, newsList) {
+    resultsContainer.innerHTML = '';
+
+    const infoLayout = document.createElement('div');
+    infoLayout.className = 'info-layout';
+
+    // Fiche détaillée
+    const gameSection = document.createElement('div');
+    gameSection.className = 'year-section open';
+    
+    const title = game.name;
+    const year = game.released ? game.released.split('-')[0] : 'N/A';
+    const imgUrl = game.background_image || '';
+    const genres = game.genres ? game.genres.map(g => g.name).join(' • ') : '';
+    const desc = game.description || 'Aucune description disponible.';
+    const link = game.site_detail_url || '';
+
+    gameSection.innerHTML = `
+      <div class="year-header"><span>Fiche détaillée</span><span class="arrow">▼</span></div>
+      <div class="year-content">
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <img src="${imgUrl}" alt="${title}" style="width:130px; height:170px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
+          <div style="flex:1; min-width:200px; display:flex; flex-direction:column; gap:6px;">
+            <div style="font-size:16px; font-weight:bold; color:var(--text);">${title}</div>
+            <div style="font-size:11px; color:var(--muted);">📅 Sortie : ${year}</div>
+            <div style="font-size:10px; color:var(--accent);">${genres}</div>
+            <div style="font-size:11px; color:var(--muted); line-height:1.4; max-height:180px; overflow-y:auto;">${desc}</div>
+            ${link ? `<a href="${link}" target="_blank" class="btn-link" style="width:fit-content; margin-top:4px;">Fiche IGDB</a>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+    gameSection.querySelector('.year-header').addEventListener('click', () => gameSection.classList.toggle('open'));
+
+    // Actualités
+    const newsSection = document.createElement('div');
+    newsSection.className = 'year-section open';
+    
+    let newsContentHtml = '';
+    if (newsList.length === 0) {
+      newsContentHtml = '<div style="color:var(--muted); font-size:12px; padding:6px 0;">Aucune actualité récente trouvée.</div>';
+    } else {
+      newsContentHtml = '<div style="display:flex; flex-direction:column; gap:8px;">';
+      newsList.forEach(n => {
+        const dateStr = new Date(n.pubDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+        newsContentHtml += `
+          <a href="${n.link}" target="_blank" style="text-decoration:none; background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:6px; display:flex; flex-direction:column; gap:4px; transition:border-color 0.2s;">
+            <div style="font-size:12px; font-weight:bold; color:var(--text);">${n.title}</div>
+            <div style="font-size:10px; color:var(--muted); display:flex; justify-content:space-between;">
+              <span>📰 ${n.source}</span>
+              <span>📅 ${dateStr}</span>
+            </div>
+          </a>
+        `;
+      });
+      newsContentHtml += '</div>';
+    }
+
+    newsSection.innerHTML = `
+      <div class="year-header"><span>Actualités récentes <span class="count">(${newsList.length})</span></span><span class="arrow">▼</span></div>
+      <div class="year-content">
+        ${newsContentHtml}
+      </div>
+    `;
+    newsSection.querySelector('.year-header').addEventListener('click', () => newsSection.classList.toggle('open'));
+
+    infoLayout.appendChild(gameSection);
+    infoLayout.appendChild(newsSection);
+    resultsContainer.appendChild(infoLayout);
+  }
+
+  function buildFilters() {
+    const genresSet = new Set();
+    rawDataList.forEach(item => {
+      if (item.genres) {
+        item.genres.forEach(g => genresSet.add(g.name));
+      }
+    });
+
+    const genreTags = document.getElementById('genreTags');
+    genreTags.innerHTML = '';
+    selectedGenres.clear();
+    genresSet.forEach(genre => {
+      const tag = document.createElement('div');
+      tag.className = 'tag tag-genre';
+      tag.innerText = genre;
+      tag.addEventListener('click', () => {
+        if (selectedGenres.has(genre)) selectedGenres.delete(genre);
+        else selectedGenres.add(genre);
+        tag.classList.toggle('active');
+        visibleCount = 20;
+        renderResults();
+      });
+      genreTags.appendChild(tag);
+    });
+  }
+
+  function matchPlatform(gamePlatforms, category) {
+    if (!gamePlatforms || gamePlatforms.length === 0) return false;
+    const names = gamePlatforms.map(p => (p.name || '').toLowerCase());
+    
+    switch (category) {
+      case 'playstation':
+        return names.some(n => n.includes('playstation') || n.includes('ps1') || n.includes('ps2') || n.includes('ps3') || n.includes('ps4') || n.includes('ps5') || n.includes('psp') || n.includes('vita'));
+      case 'xbox':
+        return names.some(n => n.includes('xbox'));
+      case 'nintendo':
+        return names.some(n => n.includes('nintendo') || n.includes('nes') || n.includes('snes') || n.includes('n64') || n.includes('gamecube') || n.includes('wii') || n.includes('switch') || n.includes('game boy') || n.includes('ds') || n.includes('3ds'));
+      case 'sega':
+        return names.some(n => n.includes('sega') || n.includes('genesis') || n.includes('mega drive') || n.includes('dreamcast') || n.includes('saturn') || n.includes('master system'));
+      case 'pc':
+        return names.some(n => n.includes('pc') || n.includes('windows') || n.includes('mac') || n.includes('linux'));
+      default:
+        return false;
+    }
+  }
+
+  function renderResults() {
+    let filtered = rawDataList.filter(item => {
+      if (selectedGenres.size > 0 && item.genres) {
+        const itemGenres = item.genres.map(g => g.name);
+        const matches = [...selectedGenres].every(g => itemGenres.includes(g));
+        if (!matches) return false;
+      }
+      if (selectedPlatforms.size > 0) {
+        const matchesPlatform = [...selectedPlatforms].some(platKey => matchPlatform(item.platforms, platKey));
+        if (!matchesPlatform) return false;
+      }
+      return true;
+    });
+
+    const sortVal = sortMode.value;
+    if (sortVal === 'YEAR_DESC') {
+      filtered.sort((a, b) => {
+        const dateA = a.released ? new Date(a.released).getTime() : 0;
+        const dateB = b.released ? new Date(b.released).getTime() : 0;
+        return dateB - dateA;
+      });
+    } else if (sortVal === 'NAME_ASC') {
+      filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    }
+
+    resultsContainer.innerHTML = '';
+
+    if (filtered.length === 0) {
+      loadMoreContainer.style.display = 'none';
+      resultsContainer.innerHTML = '<div style="text-align:center; color:var(--muted); padding: 20px;">Aucun élément ne correspond aux filtres sélectionnés.</div>';
+      return;
+    }
+
+    const limitedFiltered = filtered.slice(0, visibleCount);
+    const section = document.createElement('div');
+    section.className = 'year-section open';
+
+    const header = document.createElement('div');
+    header.className = 'year-header';
+    header.innerHTML = `<span>Jeux similaires <span class="count">(${filtered.length})</span></span><span class="arrow">▼</span>`;
+    
+    const content = document.createElement('div');
+    content.className = 'year-content grid-layout';
+
+    header.addEventListener('click', () => section.classList.toggle('open'));
+
+    limitedFiltered.forEach(item => content.appendChild(createCard(item)));
+    section.appendChild(header);
+    section.appendChild(content);
+    resultsContainer.appendChild(section);
+
+    if (visibleCount < filtered.length) {
+      loadMoreContainer.style.display = 'block';
+    } else {
+      loadMoreContainer.style.display = 'none';
+    }
+  }
+
+  btnLoadMore.addEventListener('click', () => {
+    visibleCount += 20;
+    renderResults();
+  });
+
+  function createCard(item) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    
+    const title = item.name;
+    const year = item.released ? item.released.split('-')[0] : '';
+    const imgUrl = item.background_image || '';
+    const genres = item.genres ? item.genres.slice(0, 2).map(g => g.name).join(' • ') : '';
+
+    card.innerHTML = `
+      <div class="card-img-wrapper">
+        <img src="${imgUrl}" alt="${title}" loading="lazy">
+      </div>
+      <div class="card-body">
+        <div class="card-title">${title}</div>
+        <div class="card-genres">${genres}</div>
+        <div class="card-meta">📅 ${year}</div>
+      </div>
+    `;
+
+    card.addEventListener('click', () => openModal(item));
+    return card;
+  }
+
+  async function openModal(item) {
+    modalImg.src = item.background_image || '';
+    modalTitle.innerText = item.name;
+    
+    const year = item.released ? item.released.split('-')[0] : 'N/A';
+    modalMeta.innerText = `📅 Sortie : ${year}`;
+    modalGenres.innerText = item.genres ? item.genres.map(g => g.name).join(' • ') : '';
+    modalDesc.innerText = item.description || 'Aucune description disponible.';
+
+    modalLinks.innerHTML = '';
+    if (item.site_detail_url) {
+      const linkBtn = document.createElement('a');
+      linkBtn.className = 'btn-link';
+      linkBtn.href = item.site_detail_url;
+      linkBtn.target = '_blank';
+      linkBtn.innerText = 'Fiche IGDB';
+      modalLinks.appendChild(linkBtn);
+    }
+
+    modalNewsContainer.innerHTML = '<div style="font-size:11px; color:var(--muted);">Chargement des actualités...</div>';
+    modalBackdrop.classList.add('show');
+
+    try {
+      const newsRes = await fetch(`/api/games?news=true&name=${encodeURIComponent(item.name)}`);
+      const newsData = await newsRes.json();
+      const newsList = newsData.results || [];
+
+      if (newsList.length === 0) {
+        modalNewsContainer.innerHTML = '<div style="font-size:11px; color:var(--muted);">Aucune actualité récente.</div>';
+      } else {
+        let html = '<div style="display:flex; flex-direction:column; gap:6px;">';
+        newsList.slice(0, 4).forEach(n => {
+          const dateStr = new Date(n.pubDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+          html += `
+            <a href="${n.link}" target="_blank" style="text-decoration:none; background:var(--bg); border:1px solid var(--border); padding:8px; border-radius:6px; display:flex; flex-direction:column; gap:2px;">
+              <div style="font-size:11px; font-weight:bold; color:var(--text);">${n.title}</div>
+              <div style="font-size:9px; color:var(--muted); display:flex; justify-content:space-between;">
+                <span>📰 ${n.source}</span>
+                <span>📅 ${dateStr}</span>
+              </div>
+            </a>
+          `;
+        });
+        html += '</div>';
+        modalNewsContainer.innerHTML = html;
+      }
+    } catch (e) {
+      modalNewsContainer.innerHTML = '<div style="font-size:11px; color:var(--muted);">Erreur lors de la récupération des actualités.</div>';
+    }
+  }
+
+  modalBackdrop.addEventListener('click', (e) => {
+    if (e.target === modalBackdrop) {
+      modalBackdrop.classList.remove('show');
+    }
+  });
+
+  toggleFiltersBtn.addEventListener('click', () => {
+    filtersWrapper.classList.toggle('open');
+    const isOpen = filtersWrapper.classList.contains('open');
+    filtersText.style.display = isOpen ? 'inline' : 'none';
+  });
+
+  sortMode.addEventListener('change', () => {
+    if (rawDataList.length > 0) {
+      visibleCount = 20;
+      renderResults();
+    }
+  });
+</script>
+</body>
+</html>
