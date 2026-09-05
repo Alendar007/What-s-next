@@ -211,6 +211,9 @@
       cursor: pointer;
       transition: all 0.2s ease;
       flex-shrink: 0;
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--text);
     }
     .plat-btn img {
       display: block;
@@ -347,25 +350,26 @@
         </select>
       </div>
 
+      <!-- Logos CDN SimpleIcons avec Fallback Texte OnError -->
       <div id="platformBar" class="platform-bar">
         <button type="button" class="plat-btn" data-platform="playstation" title="PlayStation">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/0/00/PlayStation_logo.svg" alt="PlayStation">
+          <img src="https://cdn.simpleicons.org/playstation/f8fafc" alt="PlayStation" onerror="this.replaceWith('PlayStation')">
         </button>
 
         <button type="button" class="plat-btn" data-platform="xbox" title="Xbox">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/f/f9/Xbox_one_logo.svg" alt="Xbox">
+          <img src="https://cdn.simpleicons.org/xbox/f8fafc" alt="Xbox" onerror="this.replaceWith('Xbox')">
         </button>
 
         <button type="button" class="plat-btn" data-platform="nintendo" title="Nintendo">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/0/0d/Nintendo.svg" alt="Nintendo">
+          <img src="https://cdn.simpleicons.org/nintendo/f8fafc" alt="Nintendo" onerror="this.replaceWith('Nintendo')">
         </button>
 
         <button type="button" class="plat-btn" data-platform="sega" title="Sega">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Sega-logo.svg" alt="SEGA">
+          <img src="https://cdn.simpleicons.org/sega/f8fafc" alt="SEGA" onerror="this.replaceWith('SEGA')">
         </button>
 
         <button type="button" class="plat-btn" data-platform="pc" title="PC">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/8/87/Windows_logo_-_2021.svg" alt="PC">
+          <img src="https://cdn.simpleicons.org/windows11/f8fafc" alt="PC" onerror="this.replaceWith('PC')">
         </button>
       </div>
 
@@ -461,6 +465,21 @@
   let selectedPlatforms = new Set();
   let debounceTimer;
 
+  // Extraction universelle de timestamp (gère ISO Strings et Timestamps IGDB)
+  function getReleaseTimestamp(item) {
+    if (!item) return 0;
+    const val = item.released || item.first_release_date || (item.release_dates && item.release_dates[0] ? item.release_dates[0].date : null);
+    if (!val) return 0;
+    if (typeof val === 'number') return val > 100000000000 ? val : val * 1000;
+    const parsed = new Date(val).getTime();
+    return isNaN(parsed) ? 0 : parsed;
+  }
+
+  function getReleaseYear(item) {
+    const ts = getReleaseTimestamp(item);
+    return ts ? new Date(ts).getFullYear() : 'N/A';
+  }
+
   function isRecentNews(dateStr) {
     if (!dateStr) return false;
     const newsDate = new Date(dateStr).getTime();
@@ -546,7 +565,7 @@
         items.forEach(item => {
           const div = document.createElement('div');
           div.className = 'autocomplete-item';
-          const year = item.released ? item.released.split('-')[0] : 'N/A';
+          const year = getReleaseYear(item);
           div.innerHTML = `<span>${item.name}</span> <span style="font-size:11px; color:var(--muted);">${year}</span>`;
           div.addEventListener('click', () => {
             searchInput.value = item.name;
@@ -618,7 +637,7 @@
     infoLayout.style.cssText = 'display: flex; gap: 20px; width: 100%; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;';
 
     const title = game.name;
-    const year = game.released ? game.released.split('-')[0] : 'N/A';
+    const year = getReleaseYear(game);
     const imgUrl = game.background_image || '';
     const genres = game.genres ? game.genres.map(g => g.name).join(' • ') : 'N/A';
     const desc = game.description_raw || game.description || 'Aucune description disponible.';
@@ -750,11 +769,7 @@
 
     const sortVal = sortMode.value;
     if (sortVal === 'YEAR_DESC') {
-      filtered.sort((a, b) => {
-        const dateA = a.released ? new Date(a.released).getTime() : 0;
-        const dateB = b.released ? new Date(b.released).getTime() : 0;
-        return dateB - dateA;
-      });
+      filtered.sort((a, b) => getReleaseTimestamp(b) - getReleaseTimestamp(a));
     } else if (sortVal === 'NAME_ASC') {
       filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     }
@@ -802,7 +817,7 @@
     card.className = 'card';
     
     const title = item.name;
-    const year = item.released ? item.released.split('-')[0] : '';
+    const year = getReleaseYear(item);
     const imgUrl = item.background_image || '';
     const genres = item.genres ? item.genres.slice(0, 2).map(g => g.name).join(' • ') : '';
 
@@ -825,7 +840,7 @@
     modalImg.src = item.background_image || '';
     modalTitle.innerText = item.name;
     
-    const year = item.released ? item.released.split('-')[0] : 'N/A';
+    const year = getReleaseYear(item);
     modalMeta.innerText = `📅 Sortie : ${year}`;
     modalGenres.innerText = item.genres ? item.genres.map(g => g.name).join(' • ') : '';
     modalDesc.innerText = item.description || 'Aucune description disponible.';
