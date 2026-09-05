@@ -189,7 +189,7 @@
     }
     .btn-toggle-filters:hover { border-color: var(--accent); }
 
-    /* Barre d'icônes avec maintien parfait des proportions */
+    /* Barre d'icônes avec images réelles */
     .platform-bar {
       display: flex;
       align-items: center;
@@ -211,10 +211,12 @@
       transition: all 0.2s ease;
       flex-shrink: 0;
     }
-    .plat-btn svg {
+    .plat-btn img {
       display: block;
+      height: 26px;
+      width: auto;
+      object-fit: contain;
       flex-shrink: 0;
-      max-height: 28px;
     }
     .plat-btn:hover {
       border-color: var(--accent);
@@ -324,6 +326,7 @@
       .btn-toggle-filters { margin-top: 0; height: 26px; padding: 0 8px; }
       .platform-bar { margin-top: 0; gap: 4px; }
       .plat-btn { height: 32px; padding: 0 6px; border-radius: 6px; }
+      .plat-btn img { height: 20px; }
       .results-scroll-area { padding: 8px 10px 20px 55px; }
     }
   </style>
@@ -358,43 +361,22 @@
       <button id="toggleFiltersBtn" class="btn-toggle-filters" title="Filtres">⚙️ <span id="filtersText" style="display:none; font-size:12px;">Filtres</span></button>
     </div>
 
-    <!-- Barre d'icônes avec dimensions exactes et preserveAspectRatio -->
+    <!-- Barre d'icônes avec les images officielles exactes -->
     <div id="platformBar" class="platform-bar">
       <button type="button" class="plat-btn" data-platform="playstation" title="PlayStation">
-        <svg viewBox="0 0 320 250" width="34" height="26" preserveAspectRatio="xMidYMid meet">
-          <path fill="#F3C300" d="M127.5,189.2c-15.8,5.1-33.1,3.8-44.5-2.2c-14.2-7.5-17.5-20.3-7.5-28.7c7.4-6.2,20.8-8.2,35.8-5.8l17.7-18.7c-25.2-3.1-49,1.1-63.5,13.2c-20.9,17.5-14.8,42.8,13.6,56.2c19.1,9,45.4,8.9,71.2,1.2L127.5,189.2z"/>
-          <path fill="#00A389" d="M228.3,165.7c-18.6,13.8-47.5,22.2-76.3,21.8l-12.7,13.4c33.3,1.9,67.6-6.8,89.5-23.1c11.6-8.6,17.6-18.7,17.6-28.7c0-2.3-0.3-4.6-0.9-6.9l-22.1,8.1C224.7,155.1,226.7,160.7,228.3,165.7z M128.8,145.7l-17.7,18.7c15.8,2.5,31.7,0.7,44.7-4.4l12.8-13.5C155.6,151.2,141.6,148.9,128.8,145.7z"/>
-          <path fill="#0062AD" d="M268.5,123.3c-11.8-8.9-29.4-12.7-48.4-11l-22.1,8.1c13.7,0.4,26.1,3.3,34.4,9.6c10.4,7.9,8.5,20.4-4.1,25.7c-0.3,0.1-0.6,0.3-0.9,0.4l18.3,13.8c1.3-0.6,2.6-1.3,3.8-2.1C270.4,153.8,276.5,138.8,268.5,123.3z"/>
-          <path fill="#DF0024" d="M121.8,12v187.3l42.6-14.2V81.3c7.2-2.3,15.2-3.3,23-2.7c15.2,1.1,23.3,8.7,23.3,21.8c0,14.6-10.7,24.8-29.1,28.2l12.8,13.5c28.3-6.6,44.8-23.2,44.8-46.7c0-23.6-17.3-39.2-46.5-41.2c-10.8-0.7-20.9,0.7-28.3,3.3V12H121.8z M164.4,38.6c2.8-0.8,6.2-1.2,9.8-1.1c11.5,0.4,18.5,5.8,18.5,14.5c0,8.3-6.4,14.1-17.1,14.8c-4.2,0.3-8.1,0-11.2-0.8V38.6z"/>
-        </svg>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/PlayStation_logo.svg" alt="PlayStation">
       </button>
       <button type="button" class="plat-btn" data-platform="xbox" title="Xbox">
-        <svg viewBox="0 0 100 100" width="28" height="28" preserveAspectRatio="xMidYMid meet">
-          <circle cx="50" cy="50" r="48" fill="#107C41"/>
-          <path fill="#FFFFFF" d="M20,22 C30,32 42,44 50,53 C58,44 70,32 80,22 C70,14 58,10 50,10 C42,10 30,14 20,22 Z M18,30 C26,42 38,56 48,64 C36,73 24,82 17,88 C12,78 10,65 10,50 C10,42 13,35 18,30 Z M82,30 C87,35 90,42 90,50 C90,65 88,78 83,88 C76,82 64,73 52,64 C62,56 74,42 82,30 Z M50,57 C42,66 28,82 19,90 C27,95 38,98 50,98 C62,98 73,95 81,90 C72,82 58,66 50,57 Z"/>
-        </svg>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/f9/Xbox_one_logo.svg" alt="Xbox">
       </button>
       <button type="button" class="plat-btn" data-platform="nintendo" title="Nintendo">
-        <svg viewBox="0 0 100 100" width="28" height="28" preserveAspectRatio="xMidYMid meet">
-          <polygon fill="#B38B22" points="50,2 55,9 62,4 66,12 74,8 76,17 84,16 83,25 92,26 88,34 96,38 91,45 98,50 91,55 96,62 88,66 92,74 83,75 84,84 76,83 74,92 66,88 62,96 55,91 50,98 45,91 38,96 34,88 26,92 24,83 16,84 17,75 8,74 12,66 4,62 9,55 2,50 9,45 4,38 12,34 8,26 17,25 16,16 24,17 26,8 34,12 38,4 45,9"/>
-          <circle cx="50" cy="50" r="37" fill="#FFFFFF"/>
-          <circle cx="50" cy="50" r="35" fill="none" stroke="#B38B22" stroke-width="1.5"/>
-          <circle cx="50" cy="50" r="31" fill="none" stroke="#B38B22" stroke-width="0.8"/>
-          <text x="50" y="28" fill="#B38B22" font-family="sans-serif" font-weight="900" font-size="9" text-anchor="middle">Original</text>
-          <rect x="22" y="34" width="56" height="18" rx="9" fill="none" stroke="#B38B22" stroke-width="2"/>
-          <text x="50" y="47.5" fill="#B38B22" font-family="sans-serif" font-weight="900" font-size="9" text-anchor="middle">Nintendo</text>
-          <text x="50" y="65" fill="#B38B22" font-family="sans-serif" font-weight="900" font-size="8" text-anchor="middle">Seal of</text>
-          <text x="50" y="74" fill="#B38B22" font-family="sans-serif" font-weight="900" font-size="8" text-anchor="middle">Quality</text>
-        </svg>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/ed/Nintendo_Seal_of_Quality.svg" alt="Nintendo">
       </button>
       <button type="button" class="plat-btn" data-platform="sega" title="Sega">
-        <svg viewBox="0 0 120 40" width="56" height="20" preserveAspectRatio="xMidYMid meet">
-          <rect width="120" height="40" rx="6" fill="#0060A8"/>
-          <text x="60" y="28" fill="#FFFFFF" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="22" letter-spacing="1.5" text-anchor="middle">SEGA</text>
-        </svg>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/3/3d/SEGA_logo.svg" alt="SEGA">
       </button>
       <button type="button" class="plat-btn" data-platform="pc" title="PC">
-        <svg viewBox="0 0 32 32" width="28" height="28" preserveAspectRatio="xMidYMid meet">
+        <svg viewBox="0 0 32 32" width="28" height="28" style="display:block; flex-shrink:0;">
           <rect x="2" y="4" width="28" height="24" rx="6" fill="#2563EB"/>
           <text x="16" y="20.5" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="13" letter-spacing="0.5" text-anchor="middle">PC</text>
         </svg>
