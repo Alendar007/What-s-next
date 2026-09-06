@@ -377,10 +377,11 @@
     .modal-title { font-size: 15px; font-weight: bold; margin-bottom: 4px; color: var(--text); word-break: break-word; }
     .modal-description { font-size: 10px; line-height: 1.4; color: var(--muted); margin: 8px 0; max-height: 100px; overflow-y: auto; word-break: break-word; }
     
-    .modal-links, .store-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-    .btn-link { background: var(--accent); color: #fff; text-decoration: none; padding: 5px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; display: inline-block; }
+    .store-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
     .btn-store { background: var(--bg); border: 1px solid var(--border); color: var(--text); text-decoration: none; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; transition: border-color 0.2s; }
     .btn-store:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-igdb { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-igdb:hover { background: #4f46e5; border-color: #4f46e5; color: #fff; }
 
     @keyframes shimmer {
       0% { background-position: -200px 0; }
@@ -523,8 +524,6 @@
           
           <div style="font-size:10px; font-weight:bold; color:var(--text); margin-top:6px;">Où l'obtenir :</div>
           <div id="modalStoreLinks" class="store-links"></div>
-          
-          <div id="modalLinks" class="modal-links" style="margin-top:6px;"></div>
         </div>
       </div>
       <div id="modalNewsSection" style="margin-top:8px; border-top: 1px solid var(--border); padding-top:8px;">
@@ -579,7 +578,6 @@
   const modalPegi = document.getElementById('modalPegi');
   const modalDesc = document.getElementById('modalDesc');
   const modalStoreLinks = document.getElementById('modalStoreLinks');
-  const modalLinks = document.getElementById('modalLinks');
   const modalNewsContainer = document.getElementById('modalNewsContainer');
 
   let rawDataList = [];
@@ -732,67 +730,39 @@
     }
   }
 
-  // Distance Levenshtein pour mesurer la ressemblance de deux chaînes
-  function levenshtein(a, b) {
-    const matrix = Array.from({ length: a.length + 1 }, () => []);
-    for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
-    for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
-
-    for (let i = 1; i <= a.length; i++) {
-      for (let j = 1; j <= b.length; j++) {
-        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j - 1] + cost
-        );
-      }
-    }
-    return matrix[a.length][b.length];
-  }
-
-  function stringSimilarity(str1, str2) {
-    const maxLen = Math.max(str1.length, str2.length);
-    if (maxLen === 0) return 1.0;
-    return (maxLen - levenshtein(str1, str2)) / maxLen;
-  }
-
+  // Nettoyage drastique des suffixes de sous-titres et éditions
   function normalizeGameTitle(title) {
     if (!title) return '';
-    return title
+    let cleaned = title.split(/[-:–—]/)[0]; // Ne garde que ce qui précède le premier tiret ou deux-points
+    return cleaned
       .toLowerCase()
-      .replace(/\b(deluxe|goty|game of the year|collector'?s?|remastered|remake|definitive|special|enhanced|ultimate|gold|complete|edition|hd|way of the sword)\b/gi, '')
+      .replace(/\b(deluxe|goty|game of the year|collector'?s?|remastered|remake|definitive|special|enhanced|ultimate|gold|complete|edition|hd)\b/gi, '')
       .replace(/[^a-z0-9]/g, '')
       .trim();
   }
 
   function deduplicateGames(items) {
-    const uniqueList = [];
+    const seenMap = new Map();
 
     items.forEach(item => {
-      const normName = normalizeGameTitle(item.name);
-      if (!normName) return;
-
-      const duplicateIndex = uniqueList.findIndex(existing => {
-        const existingNorm = normalizeGameTitle(existing.name);
-        return existingNorm === normName || stringSimilarity(existingNorm, normName) > 0.85;
-      });
-
-      if (duplicateIndex === -1) {
-        uniqueList.push(item);
+      // Priorité 1: identifiant unique de base de données
+      const baseId = item.game_id || item.slug || normalizeGameTitle(item.name);
+      
+      if (!seenMap.has(baseId)) {
+        seenMap.set(baseId, item);
       } else {
-        const existing = uniqueList[duplicateIndex];
+        const existing = seenMap.get(baseId);
         const existingYear = existing.released ? parseInt(existing.released.split('-')[0]) : 0;
         const currentYear = item.released ? parseInt(item.released.split('-')[0]) : 0;
 
-        // Conserver la version la plus ancienne (version originale)
+        // Conserver la version avec la date la plus ancienne
         if (currentYear > 0 && (existingYear === 0 || currentYear < existingYear)) {
-          uniqueList[duplicateIndex] = item;
+          seenMap.set(baseId, item);
         }
       }
     });
 
-    return uniqueList;
+    return Array.from(seenMap.values());
   }
 
   function filterRecentNews(newsList) {
@@ -806,8 +776,8 @@
     });
   }
 
-  // Générateur de liens de boutiques d'achat
-  function generateStoreLinks(gameName, platformsStr) {
+  // Générateur de liens de boutiques + fiche IGDB intégrée
+  function generateStoreLinks(gameName, platformsStr, detailUrl) {
     const encoded = encodeURIComponent(gameName);
     const pLower = (platformsStr || '').toLowerCase();
     const links = [];
@@ -817,17 +787,21 @@
       links.push(`<a href="https://www.gog.com/en/games?query=${encoded}" target="_blank" class="btn-store">🎮 GOG</a>`);
     }
     if (pLower.includes('playstation') || pLower.includes('ps4') || pLower.includes('ps5')) {
-      links.push(`<a href="https://store.playstation.com/fr-fr/search/${encoded}" target="_blank" class="btn-store">🟦 PlayStation Store</a>`);
+      links.push(`<a href="https://store.playstation.com/fr-fr/search/${encoded}" target="_blank" class="btn-store">🟦 PlayStation</a>`);
     }
     if (pLower.includes('xbox')) {
-      links.push(`<a href="https://www.xbox.com/fr-FR/search?q=${encoded}" target="_blank" class="btn-store">🟩 Xbox Store</a>`);
+      links.push(`<a href="https://www.xbox.com/fr-FR/search?q=${encoded}" target="_blank" class="btn-store">🟩 Xbox</a>`);
     }
     if (pLower.includes('nintendo') || pLower.includes('switch')) {
-      links.push(`<a href="https://www.nintendo.fr/Recherche/Recherche-79924.html?q=${encoded}" target="_blank" class="btn-store">🟥 Nintendo eShop</a>`);
+      links.push(`<a href="https://www.nintendo.fr/Recherche/Recherche-79924.html?q=${encoded}" target="_blank" class="btn-store">🟥 Nintendo</a>`);
+    }
+
+    if (detailUrl) {
+      links.push(`<a href="${detailUrl}" target="_blank" class="btn-store btn-igdb">🗂️ IGDB</a>`);
     }
 
     if (links.length === 0) {
-      links.push(`<a href="https://www.google.com/search?q=buy+${encoded}+game" target="_blank" class="btn-store">🛒 Rechercher un vendeur</a>`);
+      links.push(`<a href="https://www.google.com/search?q=buy+${encoded}+game" target="_blank" class="btn-store">🛒 Vendeurs</a>`);
     }
 
     return links.join('');
@@ -849,14 +823,13 @@
     const imgUrl = game.background_image || '';
     const genres = game.genres ? game.genres.map(g => g.name).join(', ') : 'N/A';
     const desc = game.description || 'Aucune description disponible.';
-    const link = game.site_detail_url || '';
 
     const developers = game.developers ? game.developers.map(d => d.name).join(', ') : 'N/A';
     const publishers = game.publishers ? game.publishers.map(p => p.name).join(', ') : 'N/A';
     const platforms = game.platforms ? game.platforms.map(p => p.name || p.platform?.name).filter(Boolean).join(', ') : 'N/A';
     const pegi = game.esrb_rating ? game.esrb_rating.name : (game.pegi ? `PEGI ${game.pegi}` : 'Non classé');
 
-    const storeHtml = generateStoreLinks(title, platforms);
+    const storeHtml = generateStoreLinks(title, platforms, game.site_detail_url);
 
     gameSection.innerHTML = `
       <div class="year-header"><span>Fiche de Jeu</span><span class="arrow">▼</span></div>
@@ -879,8 +852,6 @@
             
             <div style="font-size:10px; font-weight:bold; color:var(--text); margin-top:6px;">Où l'obtenir :</div>
             <div class="store-links">${storeHtml}</div>
-
-            ${link ? `<a href="${link}" target="_blank" class="btn-link" style="width:fit-content; margin-top:6px;">Fiche IGDB</a>` : ''}
           </div>
         </div>
       </div>
@@ -1079,17 +1050,7 @@
     modalPegi.innerText = item.esrb_rating ? item.esrb_rating.name : (item.pegi ? `PEGI ${item.pegi}` : 'Non classé');
     modalDesc.innerText = item.description || 'Aucune description disponible.';
 
-    modalStoreLinks.innerHTML = generateStoreLinks(item.name, platformsStr);
-
-    modalLinks.innerHTML = '';
-    if (item.site_detail_url) {
-      const linkBtn = document.createElement('a');
-      linkBtn.className = 'btn-link';
-      linkBtn.href = item.site_detail_url;
-      linkBtn.target = '_blank';
-      linkBtn.innerText = 'Fiche IGDB';
-      modalLinks.appendChild(linkBtn);
-    }
+    modalStoreLinks.innerHTML = generateStoreLinks(item.name, platformsStr, item.site_detail_url);
 
     modalNewsContainer.innerHTML = '<div style="font-size:10px; color:var(--muted);">Chargement des actualités...</div>';
     modalBackdrop.classList.add('show');
