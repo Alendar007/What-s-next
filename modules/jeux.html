@@ -107,7 +107,6 @@
       color: #fff;
     }
     
-    /* Layout dynamique réactif pour la barre d'action */
     .toolbar-layout {
       display: flex;
       flex-wrap: wrap;
@@ -294,6 +293,7 @@
     .tag { background: var(--bg); border: 1px solid var(--border); padding: 3px 8px; border-radius: 14px; font-size: 11px; cursor: pointer; color: var(--text); display: inline-flex; align-items: center; gap: 4px; }
     .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
+    /* Disposition infos : Hauteur égale sur bureau */
     .info-layout {
       display: flex;
       flex-direction: column;
@@ -303,20 +303,27 @@
     @media (min-width: 768px) {
       .info-layout {
         flex-direction: row;
-        align-items: flex-start;
+        align-items: stretch;
       }
       .info-layout > .year-section {
         flex: 1;
         min-width: 0;
+        display: flex;
+        flex-direction: column;
+        height: 520px;
+      }
+      .info-layout .year-content {
+        flex: 1;
+        overflow-y: auto;
       }
     }
 
     .year-section { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card-bg); width: 100%; }
     .info-layout .year-section { margin-bottom: 0; }
-    .year-header { padding: 8px 12px; background: var(--card-bg); font-weight: bold; font-size: 13px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; color: var(--text); }
+    .year-header { padding: 8px 12px; background: var(--card-bg); font-weight: bold; font-size: 13px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; color: var(--text); flex-shrink: 0; }
     .year-header:hover { opacity: 0.9; }
     .year-header .count { font-size: 11px; color: var(--muted); font-weight: normal; }
-    .year-content { padding: 10px; display: none; border-top: 1px solid var(--border); width: 100%; }
+    .year-content { padding: 12px; display: none; border-top: 1px solid var(--border); width: 100%; }
     
     .year-section.open .year-content { display: block; }
     .year-section.open .year-content.grid-layout { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
@@ -331,6 +338,21 @@
     .card-title { font-weight: bold; font-size: 11px; margin-bottom: 2px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .card-genres { font-size: 9px; color: var(--accent); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .card-meta { font-size: 9px; color: var(--muted); margin-top: auto; }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 10px;
+      font-size: 11px;
+      margin: 8px 0;
+    }
+    .meta-label {
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .meta-val {
+      color: var(--text);
+    }
 
     .modal-backdrop { 
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -441,6 +463,7 @@
         <div class="sort-control">
           <label for="sortMode">Trier :</label>
           <select id="sortMode">
+            <option value="RATING_DESC" selected>⭐ Note (meilleurs en premier)</option>
             <option value="YEAR_DESC">📅 Année (récent ➔ ancien)</option>
             <option value="NAME_ASC">🔤 Nom (A ➔ Z)</option>
           </select>
@@ -698,8 +721,21 @@
     }
   }
 
+  function filterRecentNews(newsList) {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    return newsList.filter(item => {
+      if (!item.pubDate) return false;
+      const pubDate = new Date(item.pubDate);
+      return pubDate >= sixMonthsAgo;
+    });
+  }
+
   function renderInfoView(game, newsList) {
     resultsContainer.innerHTML = '';
+
+    const recentNews = filterRecentNews(newsList);
 
     const infoLayout = document.createElement('div');
     infoLayout.className = 'info-layout';
@@ -710,21 +746,34 @@
     const title = game.name;
     const year = game.released ? game.released.split('-')[0] : 'N/A';
     const imgUrl = game.background_image || '';
-    const genres = game.genres ? game.genres.map(g => g.name).join(' • ') : '';
+    const genres = game.genres ? game.genres.map(g => g.name).join(', ') : 'N/A';
     const desc = game.description || 'Aucune description disponible.';
     const link = game.site_detail_url || '';
+
+    const developers = game.developers ? game.developers.map(d => d.name).join(', ') : 'N/A';
+    const publishers = game.publishers ? game.publishers.map(p => p.name).join(', ') : 'N/A';
+    const platforms = game.platforms ? game.platforms.map(p => p.name || p.platform?.name).filter(Boolean).join(', ') : 'N/A';
+    const pegi = game.esrb_rating ? game.esrb_rating.name : (game.pegi ? `PEGI ${game.pegi}` : 'Non classé');
 
     gameSection.innerHTML = `
       <div class="year-header"><span>Fiche de Jeu</span><span class="arrow">▼</span></div>
       <div class="year-content">
-        <div style="display:flex; gap:10px; flex-wrap:wrap; width:100%;">
-          <img src="${imgUrl}" alt="${title}" style="width:100px; height:140px; object-fit:cover; border-radius:8px; border:1px solid var(--border); flex-shrink:0;">
+        <div style="display:flex; gap:12px; flex-wrap:wrap; width:100%;">
+          <img src="${imgUrl}" alt="${title}" style="width:110px; height:150px; object-fit:cover; border-radius:8px; border:1px solid var(--border); flex-shrink:0;">
           <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:4px;">
-            <div style="font-size:14px; font-weight:bold; color:var(--text); word-break:break-word;">${title}</div>
-            <div style="font-size:10px; color:var(--muted);">📅 Sortie : ${year}</div>
-            <div style="font-size:9px; color:var(--accent);">${genres}</div>
-            <div style="font-size:10px; color:var(--muted); line-height:1.4; max-height:140px; overflow-y:auto; word-break:break-word;">${desc}</div>
-            ${link ? `<a href="${link}" target="_blank" class="btn-link" style="width:fit-content; margin-top:2px;">Fiche IGDB</a>` : ''}
+            <div style="font-size:15px; font-weight:bold; color:var(--text); word-break:break-word;">${title}</div>
+            
+            <div class="meta-grid">
+              <span class="meta-label">📅 Sortie :</span><span class="meta-val">${year}</span>
+              <span class="meta-label">🏷️ Genres :</span><span class="meta-val">${genres}</span>
+              <span class="meta-label">🛠️ Dev :</span><span class="meta-val">${developers}</span>
+              <span class="meta-label">🏢 Éditeur :</span><span class="meta-val">${publishers}</span>
+              <span class="meta-label">🎮 Supports :</span><span class="meta-val">${platforms}</span>
+              <span class="meta-label">🔞 PEGI :</span><span class="meta-val">${pegi}</span>
+            </div>
+
+            <div style="font-size:10px; color:var(--muted); line-height:1.4; max-height:120px; overflow-y:auto; word-break:break-word; margin-top:4px;">${desc}</div>
+            ${link ? `<a href="${link}" target="_blank" class="btn-link" style="width:fit-content; margin-top:6px;">Fiche IGDB</a>` : ''}
           </div>
         </div>
       </div>
@@ -735,11 +784,11 @@
     newsSection.className = 'year-section open';
     
     let newsContentHtml = '';
-    if (newsList.length === 0) {
-      newsContentHtml = '<div style="color:var(--muted); font-size:11px; padding:4px 0;">Aucune actualité récente trouvée.</div>';
+    if (recentNews.length === 0) {
+      newsContentHtml = '<div style="color:var(--muted); font-size:11px; padding:8px 0; text-align:center;">Aucune actualité au cours des 6 derniers mois.</div>';
     } else {
       newsContentHtml = '<div style="display:flex; flex-direction:column; gap:6px;">';
-      newsList.forEach(n => {
+      recentNews.forEach(n => {
         const dateStr = new Date(n.pubDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
         newsContentHtml += `
           <a href="${n.link}" target="_blank" style="text-decoration:none; background:var(--bg); border:1px solid var(--border); padding:8px; border-radius:6px; display:flex; flex-direction:column; gap:2px; transition:border-color 0.2s;">
@@ -755,7 +804,7 @@
     }
 
     newsSection.innerHTML = `
-      <div class="year-header"><span>Dernières Actualités <span class="count">(${newsList.length})</span></span><span class="arrow">▼</span></div>
+      <div class="year-header"><span>Dernières Actualités (6 derniers mois) <span class="count">(${recentNews.length})</span></span><span class="arrow">▼</span></div>
       <div class="year-content">
         ${newsContentHtml}
       </div>
@@ -828,7 +877,13 @@
     });
 
     const sortVal = sortMode.value;
-    if (sortVal === 'YEAR_DESC') {
+    if (sortVal === 'RATING_DESC') {
+      filtered.sort((a, b) => {
+        const ratingA = a.rating || a.rating_top || 0;
+        const ratingB = b.rating || b.rating_top || 0;
+        return ratingB - ratingA;
+      });
+    } else if (sortVal === 'YEAR_DESC') {
       filtered.sort((a, b) => {
         const dateA = a.released ? new Date(a.released).getTime() : 0;
         const dateB = b.released ? new Date(b.released).getTime() : 0;
@@ -926,12 +981,13 @@
       const newsRes = await fetch(`/api/games?news=true&name=${encodeURIComponent(item.name)}`);
       const newsData = await newsRes.json();
       const newsList = newsData.results || [];
+      const recentNews = filterRecentNews(newsList);
 
-      if (newsList.length === 0) {
-        modalNewsContainer.innerHTML = '<div style="font-size:10px; color:var(--muted);">Aucune actualité récente.</div>';
+      if (recentNews.length === 0) {
+        modalNewsContainer.innerHTML = '<div style="font-size:10px; color:var(--muted);">Aucune actualité au cours des 6 derniers mois.</div>';
       } else {
         let html = '<div style="display:flex; flex-direction:column; gap:6px;">';
-        newsList.slice(0, 4).forEach(n => {
+        recentNews.slice(0, 4).forEach(n => {
           const dateStr = new Date(n.pubDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
           html += `
             <a href="${n.link}" target="_blank" style="text-decoration:none; background:var(--bg); border:1px solid var(--border); padding:6px 8px; border-radius:6px; display:flex; flex-direction:column; gap:2px;">
