@@ -220,7 +220,7 @@
     }
     .btn-toggle-filters:hover { border-color: var(--accent); }
 
-    /* Boutons de filtres plateformes identiques à ta capture */
+    /* Boutons de filtres plateformes */
     .platform-bar {
       display: flex;
       align-items: center;
@@ -234,7 +234,7 @@
       border: 1px solid var(--border);
       border-radius: 6px;
       padding: 6px 12px;
-      min-width: 48px;
+      min-width: 44px;
       height: 32px;
       display: inline-flex;
       align-items: center;
@@ -431,16 +431,27 @@
       <button id="toggleFiltersBtn" class="btn-toggle-filters" title="Filtres">⚙️ <span id="filtersText" style="display:none; font-size:11px;">Filtres</span></button>
     </div>
 
-    <!-- Barre d'icônes textuelles/SVG simples comme la capture d'écran -->
+    <!-- Barre d'icônes corrigées -->
     <div id="platformBar" class="platform-bar">
+      <!-- PlayStation (Logo officiel PS avec P vertical et S couché) -->
       <button type="button" class="plat-btn" data-platform="playstation" title="PlayStation">
-        <svg viewBox="0 0 24 24"><path d="M22.02 13.92c-.28-.42-.98-.74-2.05-.92-1.07-.18-2.4-.18-3.97.02v-3.7c1.47.1 2.57.4 3.12.87.55.47.62.98.5 1.55h2.12c.18-1.42-.55-2.67-1.85-3.52-1.3-.85-3.23-1.28-5.88-1.37V5.2c0-.72-.42-1.27-1.07-1.62s-1.38-.35-1.93.02L5.22 7.15c-.55.37-.87.95-.87 1.62v10.15c0 .67.32 1.25.87 1.62.55.37 1.28.37 1.83.02l5.88-3.8V14.8l-4.13 2.67V9.32l4.13-2.67v8.52c1.78-.22 3.22-.22 4.25-.02 1.03.2 1.58.62 1.65 1.28-.07.65-.8 1.18-2.13 1.55-1.33.37-3.23.35-5.67-.08v2.18c2.58.45 4.8.47 6.63.08 1.83-.38 3.18-1.12 3.6-2.18.42-1.07.13-2.18-.58-2.93z"/></svg>
+        <svg viewBox="0 0 50 50"><path d="M5.8 32.5c-2.3 1.1-3 2.5-1.5 3.3 2.1 1.2 7.8 1.4 13.9.5l8.6-1.3v-5l-4.5.7c-2.3.4-4.5.4-5.2.1-.6-.3-.3-.8.7-1.2l9-3.2v-5.2l-14 4.8c-2.9 1.1-5.1 2.3-7 3.6zm21-27.1v23.2l5.8.9v-13c0-2.3 1.1-3.2 3.2-2.8 2.1.4 2.8 1.8 2.8 4.1v7.6l5.8.9V18c0-5-2.5-7.5-7.3-8.3-3.6-.6-7.3.3-10.3 1.7zm1.1 26.2l12.4-4.2c1.9-.6 3.1-.7 3.6-.3.6.4.1.9-1.2 1.4l-11.2 3.8v-0.7z"/></svg>
       </button>
-      <button type="button" class="plat-btn" data-platform="xbox" title="Xbox">Xbox</button>
+
+      <!-- Xbox (Logo officiel sphère + croix X) -->
+      <button type="button" class="plat-btn" data-platform="xbox" title="Xbox">
+        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-2.8 15.6c-1.3-.9-2.5-2.3-3.2-3.7 1.8-1 4.1-1.6 6-1.6s4.2.6 6 1.6c-.7 1.4-1.9 2.8-3.2 3.7-1.6-1.5-4-1.5-5.6 0zm-3.5-5.8c.8-1.8 2.2-3.3 3.8-4.2.8 1.4 2.5 3.7 4.5 5.5-2.3 0-5.8-.4-8.3-1.3zm12.6 0c-2.5.9-6 1.3-8.3 1.3 2-1.8 3.7-4.1 4.5-5.5 1.6.9 3 2.4 3.8 4.2z"/></svg>
+      </button>
+
+      <!-- Nintendo -->
       <button type="button" class="plat-btn" data-platform="nintendo" title="Nintendo">Nintendo</button>
+
+      <!-- SEGA (Logo S stylisé d'origine) -->
       <button type="button" class="plat-btn" data-platform="sega" title="Sega">
-        <svg viewBox="0 0 32 16"><text x="16" y="13" fill="currentColor" font-family="'Arial Black', sans-serif" font-weight="900" font-size="12" letter-spacing="0.5" text-anchor="middle">SEGA</text></svg>
+        <svg viewBox="0 0 24 24"><path d="M18.8 6.2c-1.1-.9-2.7-1.4-4.8-1.4H8.5c-2.2 0-3.8.5-4.8 1.5C2.7 7.3 2.2 8.7 2.2 10.4c0 1.7.5 3.1 1.5 4 1 1 2.6 1.4 4.8 1.4h5.5c1.2 0 2.1-.2 2.6-.7.5-.5.8-1.2.8-2.1 0-.9-.3-1.6-.8-2.1-.5-.5-1.4-.7-2.6-.7H8.5c-.7 0-1.2-.1-1.5-.4-.3-.3-.4-.7-.4-1.2 0-.5.1-.9.4-1.2.3-.3.8-.4 1.5-.4h5.5c1.2 0 2.1.2 2.6.7.5.5.8 1.2.8 2.1v.2h2.2v-.2c0-1.7-.5-3.1-1.5-4.1z"/></svg>
       </button>
+
+      <!-- PC -->
       <button type="button" class="plat-btn" data-platform="pc" title="PC">PC</button>
     </div>
 
