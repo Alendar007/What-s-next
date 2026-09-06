@@ -62,13 +62,13 @@
       width: 100%;
     }
 
-    /* Optimisation de l'espace utile sur smartphone sans abîmer le PC */
+    /* Suppression de la grosse marge à gauche sur mobile */
     @media (max-width: 600px) {
       .container {
-        padding: 8px 6px 6px 44px;
+        padding: 8px 6px 6px 10px;
       }
       .results-scroll-area {
-        padding: 0 6px 20px 44px;
+        padding: 0 6px 20px 10px;
       }
     }
 
@@ -339,7 +339,6 @@
     .year-section.open .arrow { transform: rotate(180deg); }
     .arrow { transition: transform 0.2s ease; font-size: 10px; display: inline-block; }
 
-    /* Disposition de la carte d'infos plus fluide sur petits écrans */
     .info-card-flex {
       display: flex;
       gap: 12px;
@@ -449,7 +448,7 @@
     .status { text-align: center; margin-top: 8px; color: var(--muted); font-size: 12px; }
 
     @media (orientation: landscape) and (max-height: 500px) {
-      .container { padding: 4px 8px 4px 44px; }
+      .container { padding: 4px 8px 4px 10px; }
       h1, .site-subtitle { display: none; }
       .site-header { margin-bottom: 0; flex-shrink: 0; }
       input { padding: 4px 8px; height: 30px; }
@@ -459,7 +458,7 @@
       .btn-toggle-filters { height: 24px; padding: 0 6px; }
       .plat-btn { padding: 2px 8px; height: 28px; min-width: 36px; font-size: 10px; }
       .plat-btn img { height: 14px; }
-      .results-scroll-area { padding: 6px 6px 16px 44px; }
+      .results-scroll-area { padding: 6px 6px 16px 10px; }
     }
   </style>
 </head>
@@ -738,6 +737,13 @@
         const cleanQuery = cleanSearchString(rawQuery);
         const matchedItems = items.filter(item => cleanSearchString(item.name).includes(cleanQuery));
         const finalItems = deduplicateGames(matchedItems.length > 0 ? matchedItems : items);
+
+        // Tri de l'autocomplétion : Plus récent au plus ancien (années/dates décroissantes)
+        finalItems.sort((a, b) => {
+          const dateA = a.released ? new Date(a.released).getTime() : 9999999999999;
+          const dateB = b.released ? new Date(b.released).getTime() : 9999999999999;
+          return dateB - dateA;
+        });
 
         autocompleteList.innerHTML = '';
         if (finalItems.length === 0) {
