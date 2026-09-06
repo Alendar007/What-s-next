@@ -293,7 +293,7 @@
     .tag { background: var(--bg); border: 1px solid var(--border); padding: 3px 8px; border-radius: 14px; font-size: 11px; cursor: pointer; color: var(--text); display: inline-flex; align-items: center; gap: 4px; }
     .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-    /* Disposition infos : Hauteur égale sur bureau */
+    /* Disposition infos : Hauteur adaptative naturelle */
     .info-layout {
       display: flex;
       flex-direction: column;
@@ -303,23 +303,16 @@
     @media (min-width: 768px) {
       .info-layout {
         flex-direction: row;
-        align-items: stretch;
+        align-items: flex-start;
       }
       .info-layout > .year-section {
         flex: 1;
         min-width: 0;
-        display: flex;
-        flex-direction: column;
-        height: 520px;
-      }
-      .info-layout .year-content {
-        flex: 1;
-        overflow-y: auto;
+        margin-bottom: 0;
       }
     }
 
     .year-section { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card-bg); width: 100%; }
-    .info-layout .year-section { margin-bottom: 0; }
     .year-header { padding: 8px 12px; background: var(--card-bg); font-weight: bold; font-size: 13px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; color: var(--text); flex-shrink: 0; }
     .year-header:hover { opacity: 0.9; }
     .year-header .count { font-size: 11px; color: var(--muted); font-weight: normal; }
@@ -710,7 +703,9 @@
         }
 
         const data = await res.json();
-        rawDataList = data.results || [];
+        const rawResults = data.results || [];
+        
+        rawDataList = deduplicateGames(rawResults);
 
         buildFilters();
         renderResults();
@@ -719,6 +714,40 @@
         status.innerText = "Erreur : " + e.message;
       }
     }
+  }
+
+  // Normalisation du titre pour supprimer les déclinaisons (Remastered, GOTY, Deluxe...)
+  function normalizeGameTitle(title) {
+    if (!title) return '';
+    return title
+      .toLowerCase()
+      .replace(/\b(deluxe|goty|game of the year|collector'?s?|remastered|remake|definitive|special|enhanced|ultimate|gold|complete|edition|hd)\b/gi, '')
+      .replace(/[^a-z0-9]/g, '')
+      .trim();
+  }
+
+  function deduplicateGames(items) {
+    const seenTitles = new Map();
+
+    items.forEach(item => {
+      const normKey = normalizeGameTitle(item.name);
+      if (!normKey) return;
+
+      if (!seenTitles.has(normKey)) {
+        seenTitles.set(normKey, item);
+      } else {
+        const existing = seenTitles.get(normKey);
+        const existingYear = existing.released ? parseInt(existing.released.split('-')[0]) : 0;
+        const currentYear = item.released ? parseInt(item.released.split('-')[0]) : 0;
+        
+        // On conserve la version originale la plus ancienne
+        if (currentYear > 0 && (existingYear === 0 || currentYear < existingYear)) {
+          seenTitles.set(normKey, item);
+        }
+      }
+    });
+
+    return Array.from(seenTitles.values());
   }
 
   function filterRecentNews(newsList) {
