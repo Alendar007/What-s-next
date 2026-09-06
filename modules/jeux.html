@@ -117,7 +117,6 @@
       margin-bottom: 10px;
     }
 
-    /* Barre de recherche centrée au milieu de l'écran par défaut */
     .search-box { 
       display: flex; 
       gap: 6px; 
@@ -595,9 +594,22 @@
   let selectedPlatforms = new Set();
   let debounceTimer;
 
-  function isSpecialEdition(title) {
-    if (!title) return false;
-    return /\b(deluxe|collector'?s?|goty|game of the year|remastered|remake|definitive|special|enhanced|ultimate|gold|complete|edition|hd|bundle|pack|season pass)\b/i.test(title);
+  // Calcul d'un score de qualité pour privilégier la version standard (non DLC / non pack)
+  function getGameBaseScore(item) {
+    let score = 100;
+    const name = (item.name || '').toLowerCase();
+    
+    if (item.developers && item.developers.length > 0) score += 20;
+    if (item.publishers && item.publishers.length > 0) score += 20;
+    if (item.description && item.description.length > 20) score += 30;
+    
+    // Penalité sur les mots-clés d'extension/DLC/bonus
+    if (/[-:–—]/.test(name)) score -= 15;
+    if (/\b(dlc|pack|set|haori|costume|skin|soundtrack|demo|bonus|deluxe|collector|goty|edition|bundle|pass)\b/i.test(name)) {
+      score -= 50;
+    }
+
+    return score;
   }
 
   document.querySelectorAll('.plat-btn').forEach(btn => {
@@ -668,14 +680,15 @@
 
         const data = await res.json();
         const items = data.results || [];
+        const dedupedItems = deduplicateGames(items);
 
         autocompleteList.innerHTML = '';
-        if (items.length === 0) {
+        if (dedupedItems.length === 0) {
           autocompleteList.style.display = 'none';
           return;
         }
 
-        items.forEach(item => {
+        dedupedItems.forEach(item => {
           const div = document.createElement('div');
           div.className = 'autocomplete-item';
           const year = item.released ? item.released.split('-')[0] : 'N/A';
@@ -696,9 +709,31 @@
     }, 300);
   });
 
+  // Si l'objet de jeu manque d'informations, effectue une recherche pour récupérer la fiche standard
+  async function fetchCanonicalGameData(game) {
+    if (game.developers && game.developers.length > 0 && game.description && game.description.length > 20) {
+      return game;
+    }
+
+    const cleanedName = game.name.split(/[-:–—]/)[0].trim();
+    try {
+      const res = await fetch(`/api/games?search=${encodeURIComponent(cleanedName)}`);
+      if (!res.ok) return game;
+      const data = await res.json();
+      const results = data.results || [];
+      
+      const bestMatch = results.sort((a, b) => getGameBaseScore(b) - getGameBaseScore(a))[0];
+      return bestMatch || game;
+    } catch (e) {
+      return game;
+    }
+  }
+
   async function processSelection() {
     resetBtn.style.display = 'flex';
     visibleCount = 20;
+
+    currentGame = await fetchCanonicalGameData(currentGame);
 
     if (currentMode === 'INFO') {
       status.innerText = '';
@@ -752,7 +787,7 @@
     let cleaned = title.split(/[-:–—]/)[0];
     return cleaned
       .toLowerCase()
-      .replace(/\b(deluxe|goty|game of the year|collector'?s?|remastered|remake|definitive|special|enhanced|ultimate|gold|complete|edition|hd|bundle)\b/gi, '')
+      .replace(/\b(deluxe|goty|game of the year|collector'?s?|remastered|remake|definitive|special|enhanced|ultimate|gold|complete|edition|hd|bundle|haori)\b/gi, '')
       .replace(/[^a-z0-9]/g, '')
       .trim();
   }
@@ -768,17 +803,12 @@
         seenMap.set(baseKey, item);
       } else {
         const existing = seenMap.get(baseKey);
-        const existingIsSpecial = isSpecialEdition(existing.name);
-        const currentIsSpecial = isSpecialEdition(item.name);
+        const existingScore = getGameBaseScore(existing);
+        const currentScore = getGameBaseScore(item);
 
-        if (existingIsSpecial && !currentIsSpecial) {
+        // Conserver systématiquement l'élément ayant le meilleur score de jeu complet
+        if (currentScore > existingScore) {
           seenMap.set(baseKey, item);
-        } else if (existingIsSpecial === currentIsSpecial) {
-          const existingYear = existing.released ? parseInt(existing.released.split('-')[0]) : 0;
-          const currentYear = item.released ? parseInt(item.released.split('-')[0]) : 0;
-          if (currentYear > 0 && (existingYear === 0 || currentYear < existingYear)) {
-            seenMap.set(baseKey, item);
-          }
         }
       }
     });
@@ -1049,7 +1079,10 @@
       </div>
     `;
 
-    card.addEventListener('click', () => openModal(item));
+    card.addEventListener('click', async () => {
+      const fullGameData = await fetchCanonicalGameData(item);
+      openModal(fullGameData);
+    });
     return card;
   }
 
