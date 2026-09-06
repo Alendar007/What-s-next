@@ -62,7 +62,6 @@
       width: 100%;
     }
 
-    /* Suppression de la grosse marge à gauche sur mobile */
     @media (max-width: 600px) {
       .container {
         padding: 8px 6px 6px 10px;
@@ -738,7 +737,6 @@
         const matchedItems = items.filter(item => cleanSearchString(item.name).includes(cleanQuery));
         const finalItems = deduplicateGames(matchedItems.length > 0 ? matchedItems : items);
 
-        // Tri de l'autocomplétion : Plus récent au plus ancien (années/dates décroissantes)
         finalItems.sort((a, b) => {
           const dateA = a.released ? new Date(a.released).getTime() : 9999999999999;
           const dateB = b.released ? new Date(b.released).getTime() : 9999999999999;
@@ -902,6 +900,9 @@
     if (detailUrl) {
       links.push(`<a href="${detailUrl}" target="_blank" class="btn-store btn-igdb">🗂️ IGDB</a>`);
     }
+
+    // Lien vers les Astuces / Soluces
+    links.push(`<a href="https://www.google.com/search?q=${encodeURIComponent(gameName + ' soluce astuces')}" target="_blank" class="btn-store">💡 Astuces / Soluces</a>`);
 
     if (links.length === 0) {
       links.push(`<a href="https://www.google.com/search?q=buy+${encoded}+game" target="_blank" class="btn-store">🛒 Vendeurs</a>`);
