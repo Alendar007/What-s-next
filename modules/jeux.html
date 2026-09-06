@@ -116,11 +116,13 @@
       margin-bottom: 10px;
     }
 
+    /* Largeur de recherche bridée à 480px max */
     .search-box { 
       display: flex; 
       gap: 6px; 
       position: relative; 
       flex: 1 1 280px;
+      max-width: 480px;
       min-width: 200px;
     }
     input { 
@@ -586,6 +588,12 @@
   let selectedPlatforms = new Set();
   let debounceTimer;
 
+  // Détecte si un titre correspond à une édition spéciale/secondaire
+  function isSpecialEdition(title) {
+    if (!title) return false;
+    return /\b(deluxe|collector'?s?|goty|game of the year|remastered|remake|definitive|special|enhanced|ultimate|gold|complete|edition|hd|bundle|pack|season pass)\b/i.test(title);
+  }
+
   document.querySelectorAll('.plat-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const platKey = btn.getAttribute('data-platform');
@@ -654,13 +662,17 @@
         const data = await res.json();
         const items = data.results || [];
         
+        // Filtrage des résultats de recherche pour privilégier le jeu de base
+        const baseItems = deduplicateGames(items.filter(item => !isSpecialEdition(item.name)));
+        const finalItems = baseItems.length > 0 ? baseItems : deduplicateGames(items);
+
         autocompleteList.innerHTML = '';
-        if (items.length === 0) {
+        if (finalItems.length === 0) {
           autocompleteList.style.display = 'none';
           return;
         }
 
-        items.forEach(item => {
+        finalItems.forEach(item => {
           const div = document.createElement('div');
           div.className = 'autocomplete-item';
           const year = item.released ? item.released.split('-')[0] : 'N/A';
@@ -730,13 +742,13 @@
     }
   }
 
-  // Nettoyage drastique des suffixes de sous-titres et éditions
+  // Normalisation du nom pour isoler la clé principale du jeu
   function normalizeGameTitle(title) {
     if (!title) return '';
-    let cleaned = title.split(/[-:–—]/)[0]; // Ne garde que ce qui précède le premier tiret ou deux-points
+    let cleaned = title.split(/[-:–—]/)[0];
     return cleaned
       .toLowerCase()
-      .replace(/\b(deluxe|goty|game of the year|collector'?s?|remastered|remake|definitive|special|enhanced|ultimate|gold|complete|edition|hd)\b/gi, '')
+      .replace(/\b(deluxe|goty|game of the year|collector'?s?|remastered|remake|definitive|special|enhanced|ultimate|gold|complete|edition|hd|bundle)\b/gi, '')
       .replace(/[^a-z0-9]/g, '')
       .trim();
   }
@@ -745,19 +757,25 @@
     const seenMap = new Map();
 
     items.forEach(item => {
-      // Priorité 1: identifiant unique de base de données
-      const baseId = item.game_id || item.slug || normalizeGameTitle(item.name);
-      
-      if (!seenMap.has(baseId)) {
-        seenMap.set(baseId, item);
-      } else {
-        const existing = seenMap.get(baseId);
-        const existingYear = existing.released ? parseInt(existing.released.split('-')[0]) : 0;
-        const currentYear = item.released ? parseInt(item.released.split('-')[0]) : 0;
+      const baseKey = normalizeGameTitle(item.name);
+      if (!baseKey) return;
 
-        // Conserver la version avec la date la plus ancienne
-        if (currentYear > 0 && (existingYear === 0 || currentYear < existingYear)) {
-          seenMap.set(baseId, item);
+      if (!seenMap.has(baseKey)) {
+        seenMap.set(baseKey, item);
+      } else {
+        const existing = seenMap.get(baseKey);
+        const existingIsSpecial = isSpecialEdition(existing.name);
+        const currentIsSpecial = isSpecialEdition(item.name);
+
+        // Si l'élément existant est une édition spéciale mais que le nouveau est le jeu de base, on remplace
+        if (existingIsSpecial && !currentIsSpecial) {
+          seenMap.set(baseKey, item);
+        } else if (existingIsSpecial === currentIsSpecial) {
+          const existingYear = existing.released ? parseInt(existing.released.split('-')[0]) : 0;
+          const currentYear = item.released ? parseInt(item.released.split('-')[0]) : 0;
+          if (currentYear > 0 && (existingYear === 0 || currentYear < existingYear)) {
+            seenMap.set(baseKey, item);
+          }
         }
       }
     });
@@ -776,7 +794,6 @@
     });
   }
 
-  // Générateur de liens de boutiques + fiche IGDB intégrée
   function generateStoreLinks(gameName, platformsStr, detailUrl) {
     const encoded = encodeURIComponent(gameName);
     const pLower = (platformsStr || '').toLowerCase();
