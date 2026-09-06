@@ -111,12 +111,13 @@
       display: flex;
       flex-wrap: wrap;
       align-items: flex-end;
+      justify-content: center;
       gap: 8px;
       width: 100%;
       margin-bottom: 10px;
     }
 
-    /* Largeur de recherche bridée à 480px max */
+    /* Barre de recherche centrée au milieu de l'écran par défaut */
     .search-box { 
       display: flex; 
       gap: 6px; 
@@ -124,7 +125,12 @@
       flex: 1 1 280px;
       max-width: 480px;
       min-width: 200px;
+      margin: 0 auto;
     }
+    .toolbar-layout.has-controls .search-box {
+      margin: 0;
+    }
+
     input { 
       padding: 8px 12px; 
       border-radius: 8px; 
@@ -446,7 +452,7 @@
     </div>
   </div>
 
-  <div class="toolbar-layout">
+  <div id="toolbarLayout" class="toolbar-layout">
     <div class="search-box">
       <input type="text" id="searchInput" placeholder="Rechercher un jeu (ex: Mario, Banjo...)" autocomplete="off">
       <button id="resetBtn" class="btn-reset" title="Réinitialiser">✕</button>
@@ -545,6 +551,7 @@
 
   const searchInput = document.getElementById('searchInput');
   const typeButtons = document.querySelectorAll('.type-btn');
+  const toolbarLayout = document.getElementById('toolbarLayout');
   let currentMode = 'INFO';
   let currentGame = null;
 
@@ -588,7 +595,6 @@
   let selectedPlatforms = new Set();
   let debounceTimer;
 
-  // Détecte si un titre correspond à une édition spéciale/secondaire
   function isSpecialEdition(title) {
     if (!title) return false;
     return /\b(deluxe|collector'?s?|goty|game of the year|remastered|remake|definitive|special|enhanced|ultimate|gold|complete|edition|hd|bundle|pack|season pass)\b/i.test(title);
@@ -615,6 +621,7 @@
     resultsContainer.innerHTML = '';
     loadMoreContainer.style.display = 'none';
     controlsGroup.style.display = 'none';
+    toolbarLayout.classList.remove('has-controls');
     autocompleteList.style.display = 'none';
     status.innerText = '';
     resetBtn.style.display = 'none';
@@ -661,18 +668,14 @@
 
         const data = await res.json();
         const items = data.results || [];
-        
-        // Filtrage des résultats de recherche pour privilégier le jeu de base
-        const baseItems = deduplicateGames(items.filter(item => !isSpecialEdition(item.name)));
-        const finalItems = baseItems.length > 0 ? baseItems : deduplicateGames(items);
 
         autocompleteList.innerHTML = '';
-        if (finalItems.length === 0) {
+        if (items.length === 0) {
           autocompleteList.style.display = 'none';
           return;
         }
 
-        finalItems.forEach(item => {
+        items.forEach(item => {
           const div = document.createElement('div');
           div.className = 'autocomplete-item';
           const year = item.released ? item.released.split('-')[0] : 'N/A';
@@ -702,6 +705,7 @@
       showSkeletons(2);
       loadMoreContainer.style.display = 'none';
       controlsGroup.style.display = 'none';
+      toolbarLayout.classList.remove('has-controls');
 
       try {
         const newsRes = await fetch(`/api/games?news=true&name=${encodeURIComponent(currentGame.name)}`);
@@ -718,6 +722,7 @@
       showSkeletons(6);
       loadMoreContainer.style.display = 'none';
       controlsGroup.style.display = 'flex';
+      toolbarLayout.classList.add('has-controls');
 
       try {
         const url = `/api/games?id=${currentGame.id}&similar=true`;
@@ -742,7 +747,6 @@
     }
   }
 
-  // Normalisation du nom pour isoler la clé principale du jeu
   function normalizeGameTitle(title) {
     if (!title) return '';
     let cleaned = title.split(/[-:–—]/)[0];
@@ -767,7 +771,6 @@
         const existingIsSpecial = isSpecialEdition(existing.name);
         const currentIsSpecial = isSpecialEdition(item.name);
 
-        // Si l'élément existant est une édition spéciale mais que le nouveau est le jeu de base, on remplace
         if (existingIsSpecial && !currentIsSpecial) {
           seenMap.set(baseKey, item);
         } else if (existingIsSpecial === currentIsSpecial) {
