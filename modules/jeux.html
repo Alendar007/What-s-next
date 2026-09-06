@@ -594,7 +594,17 @@
   let selectedPlatforms = new Set();
   let debounceTimer;
 
-  // Formate la date au format français complet JJ/MM/AAAA
+  // Nettoyage flexible insensible à la casse, aux tirets, aux espaces et aux accents
+  function cleanSearchString(str) {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Supprime les accents
+      .replace(/[-:–—_.'",!]/g, ' ')                   // Remplace tirets et ponctuation par un espace
+      .replace(/\s+/g, ' ')                           // Nettoie les espaces multiples
+      .trim();
+  }
+
   function formatDateFr(dateStr) {
     if (!dateStr) return 'Non communiquée';
     const parts = dateStr.split('-');
@@ -607,7 +617,6 @@
     return dateStr;
   }
 
-  // Vérifie si un jeu est déjà sorti par rapport à la date du jour
   function isReleased(dateStr) {
     if (!dateStr) return false;
     const releaseDate = new Date(dateStr);
@@ -621,13 +630,12 @@
 
   function getGameBaseScore(item) {
     let score = 100;
-    const name = (item.name || '').toLowerCase();
+    const name = cleanSearchString(item.name);
     
     if (item.developers && item.developers.length > 0) score += 20;
     if (item.publishers && item.publishers.length > 0) score += 20;
     if (item.description && item.description.length > 20) score += 30;
     
-    if (/[-:–—]/.test(name)) score -= 15;
     if (/\b(dlc|pack|set|haori|costume|skin|soundtrack|demo|bonus|deluxe|collector|goty|edition|bundle|pass)\b/i.test(name)) {
       score -= 50;
     }
@@ -683,17 +691,17 @@
 
   searchInput.addEventListener('input', () => {
     clearTimeout(debounceTimer);
-    const query = searchInput.value.trim();
-    if (query.length < 2) {
+    const rawQuery = searchInput.value.trim();
+    if (rawQuery.length < 2) {
       autocompleteList.style.display = 'none';
-      if (query.length === 0) resetBtn.style.display = 'none';
+      if (rawQuery.length === 0) resetBtn.style.display = 'none';
       return;
     }
     resetBtn.style.display = 'flex';
     
     debounceTimer = setTimeout(async () => {
       try {
-        const url = `/api/games?search=${encodeURIComponent(query)}`;
+        const url = `/api/games?search=${encodeURIComponent(rawQuery)}`;
         const res = await fetch(url);
         
         if (!res.ok) {
@@ -703,15 +711,19 @@
 
         const data = await res.json();
         const items = data.results || [];
-        const dedupedItems = deduplicateGames(items);
+
+        // Filtrage local permissif en ignorant tirets, majuscules et accents
+        const cleanQuery = cleanSearchString(rawQuery);
+        const matchedItems = items.filter(item => cleanSearchString(item.name).includes(cleanQuery));
+        const finalItems = deduplicateGames(matchedItems.length > 0 ? matchedItems : items);
 
         autocompleteList.innerHTML = '';
-        if (dedupedItems.length === 0) {
+        if (finalItems.length === 0) {
           autocompleteList.style.display = 'none';
           return;
         }
 
-        dedupedItems.forEach(item => {
+        finalItems.forEach(item => {
           const div = document.createElement('div');
           div.className = 'autocomplete-item';
           const releaseText = formatDateFr(item.released);
@@ -801,10 +813,8 @@
   function normalizeGameTitle(title) {
     if (!title) return '';
     let cleaned = title.split(/[-:–—]/)[0];
-    return cleaned
-      .toLowerCase()
+    return cleanSearchString(cleaned)
       .replace(/\b(deluxe|goty|game of the year|collector'?s?|remastered|remake|definitive|special|enhanced|ultimate|gold|complete|edition|hd|bundle|haori)\b/gi, '')
-      .replace(/[^a-z0-9]/g, '')
       .trim();
   }
 
@@ -1046,29 +1056,10 @@
 
     const limitedFiltered = filtered.slice(0, visibleCount);
 
-    // Séparation entre jeux déjà sortis et jeux à venir
     const releasedGames = limitedFiltered.filter(item => isReleased(item.released));
     const upcomingGames = limitedFiltered.filter(item => !isReleased(item.released));
 
-    if (releasedGames.length > 0) {
-      const section = document.createElement('div');
-      section.className = 'year-section open';
-
-      const header = document.createElement('div');
-      header.className = 'year-header';
-      header.innerHTML = `<span>Jeux déjà sortis <span class="count">(${releasedGames.length})</span></span><span class="arrow">▼</span>`;
-      
-      const content = document.createElement('div');
-      content.className = 'year-content grid-layout';
-
-      header.addEventListener('click', () => section.classList.toggle('open'));
-
-      releasedGames.forEach(item => content.appendChild(createCard(item)));
-      section.appendChild(header);
-      section.appendChild(content);
-      resultsContainer.appendChild(section);
-    }
-
+    // Section : Jeux à venir EN PREMIER
     if (upcomingGames.length > 0) {
       const section = document.createElement('div');
       section.className = 'year-section open';
@@ -1083,6 +1074,26 @@
       header.addEventListener('click', () => section.classList.toggle('open'));
 
       upcomingGames.forEach(item => content.appendChild(createCard(item)));
+      section.appendChild(header);
+      section.appendChild(content);
+      resultsContainer.appendChild(section);
+    }
+
+    // Section : Jeux déjà sortis EN SECOND
+    if (releasedGames.length > 0) {
+      const section = document.createElement('div');
+      section.className = 'year-section open';
+
+      const header = document.createElement('div');
+      header.className = 'year-header';
+      header.innerHTML = `<span>Jeux déjà sortis <span class="count">(${releasedGames.length})</span></span><span class="arrow">▼</span>`;
+      
+      const content = document.createElement('div');
+      content.className = 'year-content grid-layout';
+
+      header.addEventListener('click', () => section.classList.toggle('open'));
+
+      releasedGames.forEach(item => content.appendChild(createCard(item)));
       section.appendChild(header);
       section.appendChild(content);
       resultsContainer.appendChild(section);
