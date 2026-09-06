@@ -594,7 +594,31 @@
   let selectedPlatforms = new Set();
   let debounceTimer;
 
-  // Calcul d'un score de qualité pour privilégier la version standard (non DLC / non pack)
+  // Formate la date au format français complet JJ/MM/AAAA
+  function formatDateFr(dateStr) {
+    if (!dateStr) return 'Non communiquée';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      return `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
+    }
+    if (parts.length === 1 && parts[0].length === 4) {
+      return parts[0];
+    }
+    return dateStr;
+  }
+
+  // Vérifie si un jeu est déjà sorti par rapport à la date du jour
+  function isReleased(dateStr) {
+    if (!dateStr) return false;
+    const releaseDate = new Date(dateStr);
+    if (isNaN(releaseDate.getTime())) {
+      const year = parseInt(dateStr.split('-')[0]);
+      if (!isNaN(year)) return year <= new Date().getFullYear();
+      return false;
+    }
+    return releaseDate <= new Date();
+  }
+
   function getGameBaseScore(item) {
     let score = 100;
     const name = (item.name || '').toLowerCase();
@@ -603,7 +627,6 @@
     if (item.publishers && item.publishers.length > 0) score += 20;
     if (item.description && item.description.length > 20) score += 30;
     
-    // Penalité sur les mots-clés d'extension/DLC/bonus
     if (/[-:–—]/.test(name)) score -= 15;
     if (/\b(dlc|pack|set|haori|costume|skin|soundtrack|demo|bonus|deluxe|collector|goty|edition|bundle|pass)\b/i.test(name)) {
       score -= 50;
@@ -691,8 +714,8 @@
         dedupedItems.forEach(item => {
           const div = document.createElement('div');
           div.className = 'autocomplete-item';
-          const year = item.released ? item.released.split('-')[0] : 'N/A';
-          div.innerHTML = `<span>${item.name}</span> <span style="font-size:10px; color:var(--muted); flex-shrink:0;">${year}</span>`;
+          const releaseText = formatDateFr(item.released);
+          div.innerHTML = `<span>${item.name}</span> <span style="font-size:10px; color:var(--muted); flex-shrink:0;">${releaseText}</span>`;
           div.addEventListener('click', () => {
             searchInput.value = item.name;
             autocompleteList.style.display = 'none';
@@ -709,23 +732,13 @@
     }, 300);
   });
 
-  // Si l'objet de jeu manque d'informations, effectue une recherche pour récupérer la fiche standard
-  async function fetchCanonicalGameData(game) {
-    if (game.developers && game.developers.length > 0 && game.description && game.description.length > 20) {
-      return game;
-    }
-
-    const cleanedName = game.name.split(/[-:–—]/)[0].trim();
+  async function fetchExactGameDetails(gameId) {
     try {
-      const res = await fetch(`/api/games?search=${encodeURIComponent(cleanedName)}`);
-      if (!res.ok) return game;
-      const data = await res.json();
-      const results = data.results || [];
-      
-      const bestMatch = results.sort((a, b) => getGameBaseScore(b) - getGameBaseScore(a))[0];
-      return bestMatch || game;
+      const res = await fetch(`/api/games?id=${gameId}`);
+      if (!res.ok) return null;
+      return await res.json();
     } catch (e) {
-      return game;
+      return null;
     }
   }
 
@@ -733,7 +746,10 @@
     resetBtn.style.display = 'flex';
     visibleCount = 20;
 
-    currentGame = await fetchCanonicalGameData(currentGame);
+    const fullDetails = await fetchExactGameDetails(currentGame.id);
+    if (fullDetails) {
+      currentGame = fullDetails;
+    }
 
     if (currentMode === 'INFO') {
       status.innerText = '';
@@ -806,7 +822,6 @@
         const existingScore = getGameBaseScore(existing);
         const currentScore = getGameBaseScore(item);
 
-        // Conserver systématiquement l'élément ayant le meilleur score de jeu complet
         if (currentScore > existingScore) {
           seenMap.set(baseKey, item);
         }
@@ -869,7 +884,7 @@
     gameSection.className = 'year-section open';
     
     const title = game.name;
-    const year = game.released ? game.released.split('-')[0] : 'N/A';
+    const dateFormatted = formatDateFr(game.released);
     const imgUrl = game.background_image || '';
     const genres = game.genres ? game.genres.map(g => g.name).join(', ') : 'N/A';
     const desc = game.description || 'Aucune description disponible.';
@@ -890,7 +905,7 @@
             <div style="font-size:15px; font-weight:bold; color:var(--text); word-break:break-word;">${title}</div>
             
             <div class="meta-grid">
-              <span class="meta-label">📅 Sortie :</span><span class="meta-val">${year}</span>
+              <span class="meta-label">📅 Sortie :</span><span class="meta-val">${dateFormatted}</span>
               <span class="meta-label">🏷️ Genres :</span><span class="meta-val">${genres}</span>
               <span class="meta-label">🛠️ Dev :</span><span class="meta-val">${developers}</span>
               <span class="meta-label">🏢 Éditeur :</span><span class="meta-val">${publishers}</span>
@@ -1030,22 +1045,48 @@
     }
 
     const limitedFiltered = filtered.slice(0, visibleCount);
-    const section = document.createElement('div');
-    section.className = 'year-section open';
 
-    const header = document.createElement('div');
-    header.className = 'year-header';
-    header.innerHTML = `<span>Jeux similaires <span class="count">(${filtered.length})</span></span><span class="arrow">▼</span>`;
-    
-    const content = document.createElement('div');
-    content.className = 'year-content grid-layout';
+    // Séparation entre jeux déjà sortis et jeux à venir
+    const releasedGames = limitedFiltered.filter(item => isReleased(item.released));
+    const upcomingGames = limitedFiltered.filter(item => !isReleased(item.released));
 
-    header.addEventListener('click', () => section.classList.toggle('open'));
+    if (releasedGames.length > 0) {
+      const section = document.createElement('div');
+      section.className = 'year-section open';
 
-    limitedFiltered.forEach(item => content.appendChild(createCard(item)));
-    section.appendChild(header);
-    section.appendChild(content);
-    resultsContainer.appendChild(section);
+      const header = document.createElement('div');
+      header.className = 'year-header';
+      header.innerHTML = `<span>Jeux déjà sortis <span class="count">(${releasedGames.length})</span></span><span class="arrow">▼</span>`;
+      
+      const content = document.createElement('div');
+      content.className = 'year-content grid-layout';
+
+      header.addEventListener('click', () => section.classList.toggle('open'));
+
+      releasedGames.forEach(item => content.appendChild(createCard(item)));
+      section.appendChild(header);
+      section.appendChild(content);
+      resultsContainer.appendChild(section);
+    }
+
+    if (upcomingGames.length > 0) {
+      const section = document.createElement('div');
+      section.className = 'year-section open';
+
+      const header = document.createElement('div');
+      header.className = 'year-header';
+      header.innerHTML = `<span>⏳ Jeux à venir / Non sortis <span class="count">(${upcomingGames.length})</span></span><span class="arrow">▼</span>`;
+      
+      const content = document.createElement('div');
+      content.className = 'year-content grid-layout';
+
+      header.addEventListener('click', () => section.classList.toggle('open'));
+
+      upcomingGames.forEach(item => content.appendChild(createCard(item)));
+      section.appendChild(header);
+      section.appendChild(content);
+      resultsContainer.appendChild(section);
+    }
 
     if (visibleCount < filtered.length) {
       loadMoreContainer.style.display = 'block';
@@ -1064,7 +1105,7 @@
     card.className = 'card';
     
     const title = item.name;
-    const year = item.released ? item.released.split('-')[0] : '';
+    const dateText = formatDateFr(item.released);
     const imgUrl = item.background_image || '';
     const genres = item.genres ? item.genres.slice(0, 2).map(g => g.name).join(' • ') : '';
 
@@ -1075,13 +1116,13 @@
       <div class="card-body">
         <div class="card-title">${title}</div>
         <div class="card-genres">${genres}</div>
-        <div class="card-meta">📅 ${year}</div>
+        <div class="card-meta">📅 ${dateText}</div>
       </div>
     `;
 
     card.addEventListener('click', async () => {
-      const fullGameData = await fetchCanonicalGameData(item);
-      openModal(fullGameData);
+      const exactData = await fetchExactGameDetails(item.id);
+      openModal(exactData || item);
     });
     return card;
   }
@@ -1090,8 +1131,8 @@
     modalImg.src = item.background_image || '';
     modalTitle.innerText = item.name;
     
-    const year = item.released ? item.released.split('-')[0] : 'N/A';
-    modalYear.innerText = year;
+    const dateFormatted = formatDateFr(item.released);
+    modalYear.innerText = dateFormatted;
     modalGenres.innerText = item.genres ? item.genres.map(g => g.name).join(', ') : 'N/A';
     
     modalDev.innerText = item.developers ? item.developers.map(d => d.name).join(', ') : 'N/A';
