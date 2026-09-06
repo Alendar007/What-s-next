@@ -293,7 +293,6 @@
     .tag { background: var(--bg); border: 1px solid var(--border); padding: 3px 8px; border-radius: 14px; font-size: 11px; cursor: pointer; color: var(--text); display: inline-flex; align-items: center; gap: 4px; }
     .tag.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-    /* Disposition infos : Hauteur adaptative naturelle */
     .info-layout {
       display: flex;
       flex-direction: column;
@@ -358,7 +357,7 @@
     
     .modal-card { 
       background: var(--card-bg); border: 1px solid var(--border); border-bottom: none;
-      border-radius: 16px 16px 0 0; max-width: 600px; width: 100%; max-height: 85vh; 
+      border-radius: 16px 16px 0 0; max-width: 650px; width: 100%; max-height: 85vh; 
       position: relative; display: flex; flex-direction: column; box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
       transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
@@ -373,12 +372,15 @@
     .drag-handle { width: 36px; height: 4px; background: var(--muted); border-radius: 4px; }
     
     .modal-scrollable { overflow-y: auto; padding: 0 14px 16px 14px; display: flex; flex-direction: column; gap: 12px; }
-    .modal-cover { width: 100px; height: 140px; border-radius: 8px; object-fit: cover; align-self: flex-start; border: 1px solid var(--border); flex-shrink: 0; }
+    .modal-cover { width: 110px; height: 150px; border-radius: 8px; object-fit: cover; align-self: flex-start; border: 1px solid var(--border); flex-shrink: 0; }
     .modal-info { flex: 1; min-width: 0; }
     .modal-title { font-size: 15px; font-weight: bold; margin-bottom: 4px; color: var(--text); word-break: break-word; }
-    .modal-description { font-size: 11px; line-height: 1.4; color: var(--muted); margin: 8px 0; max-height: 120px; overflow-y: auto; word-break: break-word; }
-    .modal-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .modal-description { font-size: 10px; line-height: 1.4; color: var(--muted); margin: 8px 0; max-height: 100px; overflow-y: auto; word-break: break-word; }
+    
+    .modal-links, .store-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
     .btn-link { background: var(--accent); color: #fff; text-decoration: none; padding: 5px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; display: inline-block; }
+    .btn-store { background: var(--bg); border: 1px solid var(--border); color: var(--text); text-decoration: none; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; transition: border-color 0.2s; }
+    .btn-store:hover { border-color: var(--accent); color: var(--accent); }
 
     @keyframes shimmer {
       0% { background-position: -200px 0; }
@@ -415,10 +417,7 @@
     .status { text-align: center; margin-top: 8px; color: var(--muted); font-size: 12px; }
 
     @media (orientation: landscape) and (max-height: 500px) {
-      .container {
-        padding: 4px 8px 4px 50px;
-      }
-
+      .container { padding: 4px 8px 4px 50px; }
       h1, .site-subtitle { display: none; }
       .site-header { margin-bottom: 0; flex-shrink: 0; }
       input { padding: 4px 8px; height: 30px; }
@@ -506,14 +505,26 @@
       <div class="drag-handle"></div>
     </div>
     <div class="modal-scrollable">
-      <div style="display:flex; gap:10px; width:100%;">
+      <div style="display:flex; gap:12px; width:100%; flex-wrap:wrap;">
         <img id="modalImg" class="modal-cover" src="" alt="Cover">
         <div class="modal-info">
           <div id="modalTitle" class="modal-title"></div>
-          <div id="modalMeta" style="font-size: 10px; color: var(--muted);"></div>
-          <div id="modalGenres" style="font-size: 9px; color: var(--accent); margin-top: 2px;"></div>
+          
+          <div class="meta-grid">
+            <span class="meta-label">📅 Sortie :</span><span id="modalYear" class="meta-val"></span>
+            <span class="meta-label">🏷️ Genres :</span><span id="modalGenres" class="meta-val"></span>
+            <span class="meta-label">🛠️ Dev :</span><span id="modalDev" class="meta-val"></span>
+            <span class="meta-label">🏢 Éditeur :</span><span id="modalPub" class="meta-val"></span>
+            <span class="meta-label">🎮 Supports :</span><span id="modalPlats" class="meta-val"></span>
+            <span class="meta-label">🔞 PEGI :</span><span id="modalPegi" class="meta-val"></span>
+          </div>
+
           <div id="modalDesc" class="modal-description"></div>
-          <div id="modalLinks" class="modal-links"></div>
+          
+          <div style="font-size:10px; font-weight:bold; color:var(--text); margin-top:6px;">Où l'obtenir :</div>
+          <div id="modalStoreLinks" class="store-links"></div>
+          
+          <div id="modalLinks" class="modal-links" style="margin-top:6px;"></div>
         </div>
       </div>
       <div id="modalNewsSection" style="margin-top:8px; border-top: 1px solid var(--border); padding-top:8px;">
@@ -560,9 +571,14 @@
   const modalBackdrop = document.getElementById('modalBackdrop');
   const modalImg = document.getElementById('modalImg');
   const modalTitle = document.getElementById('modalTitle');
-  const modalMeta = document.getElementById('modalMeta');
+  const modalYear = document.getElementById('modalYear');
   const modalGenres = document.getElementById('modalGenres');
+  const modalDev = document.getElementById('modalDev');
+  const modalPub = document.getElementById('modalPub');
+  const modalPlats = document.getElementById('modalPlats');
+  const modalPegi = document.getElementById('modalPegi');
   const modalDesc = document.getElementById('modalDesc');
+  const modalStoreLinks = document.getElementById('modalStoreLinks');
   const modalLinks = document.getElementById('modalLinks');
   const modalNewsContainer = document.getElementById('modalNewsContainer');
 
@@ -716,38 +732,67 @@
     }
   }
 
-  // Normalisation du titre pour supprimer les déclinaisons (Remastered, GOTY, Deluxe...)
+  // Distance Levenshtein pour mesurer la ressemblance de deux chaînes
+  function levenshtein(a, b) {
+    const matrix = Array.from({ length: a.length + 1 }, () => []);
+    for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+    for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+
+    for (let i = 1; i <= a.length; i++) {
+      for (let j = 1; j <= b.length; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + cost
+        );
+      }
+    }
+    return matrix[a.length][b.length];
+  }
+
+  function stringSimilarity(str1, str2) {
+    const maxLen = Math.max(str1.length, str2.length);
+    if (maxLen === 0) return 1.0;
+    return (maxLen - levenshtein(str1, str2)) / maxLen;
+  }
+
   function normalizeGameTitle(title) {
     if (!title) return '';
     return title
       .toLowerCase()
-      .replace(/\b(deluxe|goty|game of the year|collector'?s?|remastered|remake|definitive|special|enhanced|ultimate|gold|complete|edition|hd)\b/gi, '')
+      .replace(/\b(deluxe|goty|game of the year|collector'?s?|remastered|remake|definitive|special|enhanced|ultimate|gold|complete|edition|hd|way of the sword)\b/gi, '')
       .replace(/[^a-z0-9]/g, '')
       .trim();
   }
 
   function deduplicateGames(items) {
-    const seenTitles = new Map();
+    const uniqueList = [];
 
     items.forEach(item => {
-      const normKey = normalizeGameTitle(item.name);
-      if (!normKey) return;
+      const normName = normalizeGameTitle(item.name);
+      if (!normName) return;
 
-      if (!seenTitles.has(normKey)) {
-        seenTitles.set(normKey, item);
+      const duplicateIndex = uniqueList.findIndex(existing => {
+        const existingNorm = normalizeGameTitle(existing.name);
+        return existingNorm === normName || stringSimilarity(existingNorm, normName) > 0.85;
+      });
+
+      if (duplicateIndex === -1) {
+        uniqueList.push(item);
       } else {
-        const existing = seenTitles.get(normKey);
+        const existing = uniqueList[duplicateIndex];
         const existingYear = existing.released ? parseInt(existing.released.split('-')[0]) : 0;
         const currentYear = item.released ? parseInt(item.released.split('-')[0]) : 0;
-        
-        // On conserve la version originale la plus ancienne
+
+        // Conserver la version la plus ancienne (version originale)
         if (currentYear > 0 && (existingYear === 0 || currentYear < existingYear)) {
-          seenTitles.set(normKey, item);
+          uniqueList[duplicateIndex] = item;
         }
       }
     });
 
-    return Array.from(seenTitles.values());
+    return uniqueList;
   }
 
   function filterRecentNews(newsList) {
@@ -759,6 +804,33 @@
       const pubDate = new Date(item.pubDate);
       return pubDate >= sixMonthsAgo;
     });
+  }
+
+  // Générateur de liens de boutiques d'achat
+  function generateStoreLinks(gameName, platformsStr) {
+    const encoded = encodeURIComponent(gameName);
+    const pLower = (platformsStr || '').toLowerCase();
+    const links = [];
+
+    if (pLower.includes('pc') || pLower.includes('windows')) {
+      links.push(`<a href="https://store.steampowered.com/search/?term=${encoded}" target="_blank" class="btn-store">💻 Steam</a>`);
+      links.push(`<a href="https://www.gog.com/en/games?query=${encoded}" target="_blank" class="btn-store">🎮 GOG</a>`);
+    }
+    if (pLower.includes('playstation') || pLower.includes('ps4') || pLower.includes('ps5')) {
+      links.push(`<a href="https://store.playstation.com/fr-fr/search/${encoded}" target="_blank" class="btn-store">🟦 PlayStation Store</a>`);
+    }
+    if (pLower.includes('xbox')) {
+      links.push(`<a href="https://www.xbox.com/fr-FR/search?q=${encoded}" target="_blank" class="btn-store">🟩 Xbox Store</a>`);
+    }
+    if (pLower.includes('nintendo') || pLower.includes('switch')) {
+      links.push(`<a href="https://www.nintendo.fr/Recherche/Recherche-79924.html?q=${encoded}" target="_blank" class="btn-store">🟥 Nintendo eShop</a>`);
+    }
+
+    if (links.length === 0) {
+      links.push(`<a href="https://www.google.com/search?q=buy+${encoded}+game" target="_blank" class="btn-store">🛒 Rechercher un vendeur</a>`);
+    }
+
+    return links.join('');
   }
 
   function renderInfoView(game, newsList) {
@@ -784,6 +856,8 @@
     const platforms = game.platforms ? game.platforms.map(p => p.name || p.platform?.name).filter(Boolean).join(', ') : 'N/A';
     const pegi = game.esrb_rating ? game.esrb_rating.name : (game.pegi ? `PEGI ${game.pegi}` : 'Non classé');
 
+    const storeHtml = generateStoreLinks(title, platforms);
+
     gameSection.innerHTML = `
       <div class="year-header"><span>Fiche de Jeu</span><span class="arrow">▼</span></div>
       <div class="year-content">
@@ -802,6 +876,10 @@
             </div>
 
             <div style="font-size:10px; color:var(--muted); line-height:1.4; max-height:120px; overflow-y:auto; word-break:break-word; margin-top:4px;">${desc}</div>
+            
+            <div style="font-size:10px; font-weight:bold; color:var(--text); margin-top:6px;">Où l'obtenir :</div>
+            <div class="store-links">${storeHtml}</div>
+
             ${link ? `<a href="${link}" target="_blank" class="btn-link" style="width:fit-content; margin-top:6px;">Fiche IGDB</a>` : ''}
           </div>
         </div>
@@ -989,9 +1067,19 @@
     modalTitle.innerText = item.name;
     
     const year = item.released ? item.released.split('-')[0] : 'N/A';
-    modalMeta.innerText = `📅 Sortie : ${year}`;
-    modalGenres.innerText = item.genres ? item.genres.map(g => g.name).join(' • ') : '';
+    modalYear.innerText = year;
+    modalGenres.innerText = item.genres ? item.genres.map(g => g.name).join(', ') : 'N/A';
+    
+    modalDev.innerText = item.developers ? item.developers.map(d => d.name).join(', ') : 'N/A';
+    modalPub.innerText = item.publishers ? item.publishers.map(p => p.name).join(', ') : 'N/A';
+    
+    const platformsStr = item.platforms ? item.platforms.map(p => p.name || p.platform?.name).filter(Boolean).join(', ') : 'N/A';
+    modalPlats.innerText = platformsStr;
+    
+    modalPegi.innerText = item.esrb_rating ? item.esrb_rating.name : (item.pegi ? `PEGI ${item.pegi}` : 'Non classé');
     modalDesc.innerText = item.description || 'Aucune description disponible.';
+
+    modalStoreLinks.innerHTML = generateStoreLinks(item.name, platformsStr);
 
     modalLinks.innerHTML = '';
     if (item.site_detail_url) {
