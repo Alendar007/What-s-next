@@ -107,12 +107,22 @@
       color: #fff;
     }
     
+    /* Layout dynamique réactif pour la barre d'action */
+    .toolbar-layout {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 8px;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
     .search-box { 
       display: flex; 
       gap: 6px; 
       position: relative; 
-      margin-bottom: 10px; 
-      width: 100%;
+      flex: 1 1 280px;
+      min-width: 200px;
     }
     input { 
       padding: 8px 12px; 
@@ -125,6 +135,7 @@
       flex: 1;
       min-width: 0;
       width: 100%;
+      height: 36px;
     }
     
     .btn-reset {
@@ -139,6 +150,7 @@
       align-items: center; 
       justify-content: center;
       flex-shrink: 0;
+      height: 36px;
       transition: color 0.2s, border-color 0.2s;
     }
     .btn-reset:hover { color: var(--text); border-color: var(--accent); }
@@ -178,26 +190,35 @@
     .autocomplete-item:last-child { border-bottom: none; }
     .autocomplete-item:hover { background: var(--accent); color: #fff; }
 
-    .controls-bar { margin-bottom: 10px; width: 100%; display: none; }
-    
+    .controls-group {
+      display: none;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 8px;
+      flex: 2 1 auto;
+    }
+
     .sort-bar { 
       display: flex; 
       gap: 6px; 
       background: var(--card-bg); 
-      padding: 6px 8px; 
+      padding: 4px 6px; 
       border-radius: 8px; 
       border: 1px solid var(--border); 
       align-items: center;
-      width: 100%;
+      height: 36px;
+      flex: 1 1 200px;
+      min-width: 180px;
     }
     .sort-control { 
       display: flex; 
-      flex-direction: column; 
-      gap: 2px; 
+      flex-direction: row; 
+      align-items: center;
+      gap: 6px; 
       flex: 1;
       min-width: 0;
     }
-    .sort-control label { font-size: 9px; font-weight: bold; color: var(--muted); text-transform: uppercase; }
+    .sort-control label { font-size: 9px; font-weight: bold; color: var(--muted); text-transform: uppercase; white-space: nowrap; }
     .sort-control select { padding: 4px 6px; font-size: 11px; width: 100%; background: var(--card-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; outline: none; }
     
     .btn-toggle-filters {
@@ -205,7 +226,7 @@
       border: 1px solid var(--border); 
       color: var(--text); 
       padding: 0 8px;
-      height: 30px;
+      height: 28px;
       border-radius: 6px; 
       cursor: pointer; 
       font-size: 12px; 
@@ -215,27 +236,23 @@
       align-items: center;
       justify-content: center;
       gap: 4px;
-      margin-top: 11px;
       transition: border-color 0.2s, background 0.2s;
     }
     .btn-toggle-filters:hover { border-color: var(--accent); }
 
-    /* Barre d'icônes plateformes */
     .platform-bar {
       display: flex;
       align-items: center;
       gap: 6px;
-      margin-top: 8px;
       flex-wrap: wrap;
-      width: 100%;
     }
     .plat-btn {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 0 12px;
-      min-width: 44px;
-      height: 34px;
+      padding: 0 10px;
+      min-width: 40px;
+      height: 36px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -250,7 +267,6 @@
       height: 18px;
       width: auto;
       display: block;
-      /* Inverse l'image en blanc pour le thème sombre par défaut */
       filter: invert(1);
     }
     :root[data-theme="light"] .plat-btn img {
@@ -269,7 +285,7 @@
       filter: brightness(0) invert(1);
     }
 
-    .filters-wrapper { background: var(--card-bg); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 10px; display: none; margin-top: -1px; width: 100%; }
+    .filters-wrapper { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: none; width: 100%; margin-bottom: 10px; }
     .filters-wrapper.open { display: block; }
     .filter-section { margin-bottom: 8px; }
     .filter-section:last-child { margin-bottom: 0; }
@@ -386,23 +402,16 @@
     @media (orientation: landscape) and (max-height: 500px) {
       .container {
         padding: 4px 8px 4px 50px;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 6px;
       }
 
       h1, .site-subtitle { display: none; }
       .site-header { margin-bottom: 0; flex-shrink: 0; }
-      .search-box { margin: 0; flex: 1; }
       input { padding: 4px 8px; height: 30px; }
-      .controls-bar { margin: 0; flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
       .sort-bar { padding: 2px 4px; height: 30px; }
       .sort-control label { display: none; }
       .sort-control select { padding: 2px 4px; font-size: 10px; }
-      .btn-toggle-filters { margin-top: 0; height: 24px; padding: 0 6px; }
-      .platform-bar { margin-top: 0; gap: 4px; }
-      .plat-btn { padding: 2px 8px; height: 26px; min-width: 36px; font-size: 10px; }
+      .btn-toggle-filters { height: 24px; padding: 0 6px; }
+      .plat-btn { padding: 2px 8px; height: 28px; min-width: 36px; font-size: 10px; }
       .plat-btn img { height: 14px; }
       .results-scroll-area { padding: 6px 8px 16px 50px; }
     }
@@ -420,48 +429,49 @@
     </div>
   </div>
 
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Rechercher un jeu (ex: Mario, Banjo...)" autocomplete="off">
-    <button id="resetBtn" class="btn-reset" title="Réinitialiser">✕</button>
-    <div id="autocompleteList" class="autocomplete-list"></div>
+  <div class="toolbar-layout">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Rechercher un jeu (ex: Mario, Banjo...)" autocomplete="off">
+      <button id="resetBtn" class="btn-reset" title="Réinitialiser">✕</button>
+      <div id="autocompleteList" class="autocomplete-list"></div>
+    </div>
+
+    <div id="controlsGroup" class="controls-group">
+      <div class="sort-bar">
+        <div class="sort-control">
+          <label for="sortMode">Trier :</label>
+          <select id="sortMode">
+            <option value="YEAR_DESC">📅 Année (récent ➔ ancien)</option>
+            <option value="NAME_ASC">🔤 Nom (A ➔ Z)</option>
+          </select>
+        </div>
+        <button id="toggleFiltersBtn" class="btn-toggle-filters" title="Filtres">⚙️ <span id="filtersText" style="display:none; font-size:11px;">Filtres</span></button>
+      </div>
+
+      <div id="platformBar" class="platform-bar">
+        <button type="button" class="plat-btn" data-platform="playstation" title="PlayStation">
+          <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/playstation.svg" alt="PlayStation">
+        </button>
+
+        <button type="button" class="plat-btn" data-platform="xbox" title="Xbox">
+          <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/xbox.svg" alt="Xbox">
+        </button>
+
+        <button type="button" class="plat-btn" data-platform="nintendo" title="Nintendo">Nintendo</button>
+
+        <button type="button" class="plat-btn" data-platform="sega" title="Sega">
+          <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/sega.svg" alt="SEGA">
+        </button>
+
+        <button type="button" class="plat-btn" data-platform="pc" title="PC">PC</button>
+      </div>
+    </div>
   </div>
 
-  <div id="controlsBar" class="controls-bar">
-    <div class="sort-bar">
-      <div class="sort-control">
-        <label for="sortMode">Trier par :</label>
-        <select id="sortMode">
-          <option value="YEAR_DESC">📅 Année (récent ➔ ancien)</option>
-          <option value="NAME_ASC">🔤 Nom (A ➔ Z)</option>
-        </select>
-      </div>
-      <button id="toggleFiltersBtn" class="btn-toggle-filters" title="Filtres">⚙️ <span id="filtersText" style="display:none; font-size:11px;">Filtres</span></button>
-    </div>
-
-    <!-- Icônes officielles vectorisées via CDN SimpleIcons -->
-    <div id="platformBar" class="platform-bar">
-      <button type="button" class="plat-btn" data-platform="playstation" title="PlayStation">
-        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/playstation.svg" alt="PlayStation">
-      </button>
-
-      <button type="button" class="plat-btn" data-platform="xbox" title="Xbox">
-        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/xbox.svg" alt="Xbox">
-      </button>
-
-      <button type="button" class="plat-btn" data-platform="nintendo" title="Nintendo">Nintendo</button>
-
-      <button type="button" class="plat-btn" data-platform="sega" title="Sega">
-        <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/sega.svg" alt="SEGA">
-      </button>
-
-      <button type="button" class="plat-btn" data-platform="pc" title="PC">PC</button>
-    </div>
-
-    <div id="filtersWrapper" class="filters-wrapper">
-      <div class="filter-section">
-        <div class="filter-title">Genres :</div>
-        <div id="genreTags" class="filter-tags"></div>
-      </div>
+  <div id="filtersWrapper" class="filters-wrapper">
+    <div class="filter-section">
+      <div class="filter-title">Genres :</div>
+      <div id="genreTags" class="filter-tags"></div>
     </div>
   </div>
 </div>
@@ -521,7 +531,7 @@
 
   const resetBtn = document.getElementById('resetBtn');
   const autocompleteList = document.getElementById('autocompleteList');
-  const controlsBar = document.getElementById('controlsBar');
+  const controlsGroup = document.getElementById('controlsGroup');
   const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
   const filtersText = document.getElementById('filtersText');
   const filtersWrapper = document.getElementById('filtersWrapper');
@@ -566,7 +576,7 @@
     currentGame = null;
     resultsContainer.innerHTML = '';
     loadMoreContainer.style.display = 'none';
-    controlsBar.style.display = 'none';
+    controlsGroup.style.display = 'none';
     autocompleteList.style.display = 'none';
     status.innerText = '';
     resetBtn.style.display = 'none';
@@ -649,7 +659,7 @@
       status.innerText = '';
       showSkeletons(2);
       loadMoreContainer.style.display = 'none';
-      controlsBar.style.display = 'none';
+      controlsGroup.style.display = 'none';
 
       try {
         const newsRes = await fetch(`/api/games?news=true&name=${encodeURIComponent(currentGame.name)}`);
@@ -665,7 +675,7 @@
       status.innerText = '';
       showSkeletons(6);
       loadMoreContainer.style.display = 'none';
-      controlsBar.style.display = 'block';
+      controlsGroup.style.display = 'flex';
 
       try {
         const url = `/api/games?id=${currentGame.id}&similar=true`;
