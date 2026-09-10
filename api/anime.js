@@ -1,17 +1,20 @@
 async function translateToFrench(text) {
   if (!text || text === 'Aucun synopsis disponible.') return text;
   try {
-    const truncatedText = text.length > 500 ? text.substring(0, 500) + '...' : text;
+    const truncatedText = text.length > 350 ? text.substring(0, 350) : text;
     const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(truncatedText)}&langpair=en|fr`);
     if (!res.ok) return text;
     const data = await res.json();
+    
+    if (data.responseStatus !== 200) {
+      return text;
+    }
     return data.responseData?.translatedText || text;
   } catch (e) {
     return text;
   }
 }
 
-// Transforme les liens externes AniList en clés de plateformes lisibles par le frontend
 function parsePlatforms(externalLinks = []) {
   if (!Array.isArray(externalLinks)) return [];
   const platforms = new Set();
@@ -43,7 +46,7 @@ export default async function handler(req, res) {
   };
 
   try {
-    // 1. Actualités (Google News RSS - Filtre France gl=FR)
+    // 1. Actualités
     if (news === 'true' && title) {
       const cleanTitle = (title || '').substring(0, 80);
       const queryTerm = `${cleanTitle} ${isManga ? 'manga webtoon' : 'anime'}`;
@@ -78,7 +81,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ results: newsList.slice(0, 10) });
     }
 
-    // 2. Similaires (avec récupération des plateformes et studios)
+    // 2. Similaires
     if (similar === 'true' && id) {
       const graphqlQuery = `
         query ($id: Int) {
