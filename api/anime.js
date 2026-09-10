@@ -2,6 +2,13 @@ export default async function handler(req, res) {
   const { search, type = 'anime', news, similar, id, title } = req.query;
   const mediaType = type === 'manga' ? 'MANGA' : 'ANIME';
 
+  // En-têtes réutilisables pour AniList avec le User-Agent requis
+  const aniListHeaders = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'User-Agent': 'WhatsNextApp/1.0 (https://next-flame.vercel.app)'
+  };
+
   try {
     // Actualités via Google News RSS (< 6 mois)
     if (news === 'true' && title) {
@@ -70,7 +77,7 @@ export default async function handler(req, res) {
 
       const aniListRes = await fetch('https://graphql.anilist.co', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: aniListHeaders,
         body: JSON.stringify({ query: graphqlQuery, variables: { id: parseInt(id) } })
       });
 
@@ -79,7 +86,6 @@ export default async function handler(req, res) {
       const aniListData = await aniListRes.json();
       const recNodes = aniListData.data?.Media?.recommendations?.nodes || [];
       
-      // Filtrage strict : on ne garde que les recommandations du type sélectionné
       const results = recNodes
         .filter(n => n.mediaRecommendation && n.mediaRecommendation.type === mediaType)
         .map(n => {
@@ -127,7 +133,7 @@ export default async function handler(req, res) {
 
       const aniListRes = await fetch('https://graphql.anilist.co', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: aniListHeaders,
         body: JSON.stringify({
           query: graphqlQuery,
           variables: { search, type: mediaType }
