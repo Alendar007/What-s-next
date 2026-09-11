@@ -1371,6 +1371,25 @@
   });
 
   renderWelcomeScreen();
+  window.addEventListener('message', (event) => {
+  if (!event.data) return;
+
+  // Gestion de la synchronisation du thème
+  if (event.data.type === 'set-theme') {
+    document.documentElement.setAttribute('data-theme', event.data.theme);
+  }
+
+  // Prise en charge de la recherche envoyée depuis l'omnibarre d'accueil
+  if (event.data.type === 'trigger-search' && event.data.query) {
+    const searchInput = document.getElementById('searchInput') || document.querySelector('input[type="text"]');
+    if (searchInput) {
+      searchInput.value = event.data.query;
+      // Déclenche l'événement de saisie/recherche de ton module
+      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+      searchInput.dispatchEvent(new KeyboardEvent('keypress', { key: 'Enter', bubbles: true }));
+    }
+  }
+});
 </script>
 </body>
 </html>
