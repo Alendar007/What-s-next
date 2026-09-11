@@ -716,6 +716,33 @@
     }
   }
 });
+  // Détection du Pull-to-refresh à l'intérieur de l'iframe
+let touchStartY = 0;
+let isTopPulling = false;
+
+window.addEventListener('touchstart', (e) => {
+  // On ne déclenche que si l'utilisateur est tout en haut de la page du module
+  if (window.scrollY === 0) {
+    touchStartY = e.touches[0].clientY;
+    isTopPulling = true;
+  }
+}, { passive: true });
+
+window.addEventListener('touchmove', (e) => {
+  if (!isTopPulling) return;
+  const currentY = e.touches[0].clientY;
+  const diff = currentY - touchStartY;
+
+  // Si on tire vers le bas alors qu'on est au sommet
+  if (diff > 60 && window.scrollY === 0) {
+    isTopPulling = false;
+    location.reload(); // Rafraîchit directement le module
+  }
+}, { passive: true });
+
+window.addEventListener('touchend', () => {
+  isTopPulling = false;
+});
 </script>
 </body>
 </html>
